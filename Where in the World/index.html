@@ -1286,7 +1286,8 @@ function renderGuesses() {
 // Start game
 function startGame() {
   const today = new Date().toDateString();
-  mysteryCountry = selectDailyCountry(today, VALID_MYSTERY_COUNTRIES);
+  // DEMO MODE: Force Thailand for today's demo
+  mysteryCountry = COUNTRIES_DATA.find(c => c.name === 'Thailand');
   console.log("Today's mystery country:", mysteryCountry);
   guesses = [];
   gameState = 'playing';
@@ -1525,4 +1526,5 @@ document.getElementById('resetStatsBtn').addEventListener('click', function() {
 getCountriesData();</script>
 
 </body>
+
 </html>
