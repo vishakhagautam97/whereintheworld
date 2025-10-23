@@ -25,10 +25,9 @@
         }
     /* Dark theme overrides */
     body {
-      background: #1f1b26 !important;
-      color: #e6e6e6 !important;
-      
-    }
+  background: #150f1c !important;
+  color: #e6e6e6 !important;
+}
     /* Make card backgrounds dark instead of white */
     .bg-white {
       background-color: #232026 !important;
@@ -262,7 +261,7 @@ body {
   /* Title styling */
 h1 {
   font-family: 'Chakra Petch', sans-serif;
-  color: #ed8332;
+  color: 3cded9;
   font-weight: 700;
 }
 
@@ -285,12 +284,12 @@ h1 {
 }
 
 .hint-item.typing {
-  border-right: 2px solid #ed8332;
+  border-right: 2px solid #f28f4c;
   animation: typewriter 3s steps(60) forwards, blink 1.5s step-end infinite;
 }
 
 .hint-key {
-  color: #ed8332 !important;
+  color: #f28f4c !important;
   font-weight: 600;
 }
 
@@ -438,7 +437,7 @@ h1 {
   aria-controls="statsModal"
   type="button"
   aria-label="Statistics"
-  class="inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 border-2 border-gray-400 text-gray-300 rounded-lg hover:border-[#ed8332] hover:text-[#ed8332] focus:outline-none focus:ring-2 focus:ring-[#ed8332] transition-colors"
+  class="inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 border-2 border-gray-400 text-gray-300 rounded-lg hover:border-[#f28f4c] hover:text-[#f28f4c] focus:outline-none focus:ring-2 focus:ring-[#f28f4c] transition-colors"
 >
   <span class="material-icons text-lg sm:text-xl">bar_chart</span>
 </button>
@@ -449,7 +448,7 @@ h1 {
   aria-controls="howModal"
   type="button"
   aria-label="How to play"
-  class="inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 border-2 border-gray-400 text-gray-300 rounded-lg hover:border-[#ed8332] hover:text-[#ed8332] focus:outline-none focus:ring-2 focus:ring-[#ed8332] transition-colors"
+  class="inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 border-2 border-gray-400 text-gray-300 rounded-lg hover:border-[#f28f4c] hover:text-[#f28f4c] focus:outline-none focus:ring-2 focus:ring-[#f28f4c] transition-colors"
 >
   <span class="material-icons text-lg sm:text-xl">help_outline</span>
 </button>
@@ -469,15 +468,15 @@ h1 {
                 <h3 class="text-2xl font-bold text-orange-500 mb-4">How to Play</h3>
 <ul class="space-y-5 text-sm text-gray-200 leading-relaxed">
   <li class="flex items-start gap-3">
-    <span class="material-icons text-lg flex-shrink-0" style="color:#ed8332">check_circle</span>
+    <span class="material-icons text-lg flex-shrink-0" style="color:#f28f4c">check_circle</span>
     <span>Every day you get a new country to guess.</span>
   </li>
   <li class="flex items-start gap-3">
-    <span class="material-icons text-lg flex-shrink-0" style="color:#ed8332">favorite</span>
+    <span class="material-icons text-lg flex-shrink-0" style="color:#f28f4c">favorite</span>
     <span>You have <strong class="text-red-400">10 guesses</strong>. New hints will appear as you play.</span>
   </li>
   <li class="flex items-start gap-3">
-    <span class="material-icons text-lg flex-shrink-0" style="color:#ed8332">place</span>
+    <span class="material-icons text-lg flex-shrink-0" style="color:#f28f4c">place</span>
     <div>
       <div class="mb-2">Colored circles mark your guesses on the map:</div>
       <div class="flex flex-wrap gap-3 pl-2 text-xs">
@@ -494,11 +493,11 @@ h1 {
     </div>
   </li>
   <li class="flex items-start gap-3">
-    <span class="material-icons text-lg flex-shrink-0" style="color:#ed8332">info</span>
+    <span class="material-icons text-lg flex-shrink-0" style="color:#f28f4c">info</span>
     <span>When you win or lose, you'll see interesting facts about the country including its capital, population, largest city, and more!</span>
   </li>
   <li class="flex items-center gap-3">
-    <span class="material-icons text-lg flex-shrink-0" style="color:#ed8332">calendar_today</span>
+    <span class="material-icons text-lg flex-shrink-0" style="color:#f28f4c">calendar_today</span>
     <span>A new mystery country unlocks every day at midnight!</span>
   </li>
 </ul>
@@ -516,32 +515,32 @@ h1 {
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
   <!-- Played -->
   <div class="p-4 rounded-lg border-2 border-gray-400">
-    <div class="text-3xl font-bold mb-1" style="color: #ed8332;" id="statsPlayed">0</div>
+    <div class="text-3xl font-bold mb-1" style="color: #f28f4c;" id="statsPlayed">0</div>
     <div class="text-sm text-gray-500">Played</div>
   </div>
 
   <!-- Win % -->
   <div class="p-4 rounded-lg border-2 border-gray-400">
-    <div class="text-3xl font-bold mb-1" style="color: #ed8332;" id="statsWinPercent">0</div>
+    <div class="text-3xl font-bold mb-1" style="color: #f28f4c;" id="statsWinPercent">0</div>
     <div class="text-sm text-gray-500">Win %</div>
   </div>
 
   <!-- Current Streak -->
   <div class="p-4 rounded-lg border-2 border-gray-400">
-    <div class="text-3xl font-bold mb-1" style="color: #ed8332;" id="statsCurrentStreak">0</div>
+    <div class="text-3xl font-bold mb-1" style="color: #f28f4c;" id="statsCurrentStreak">0</div>
     <div class="text-sm text-gray-500">Current Streak</div>
   </div>
 
   <!-- Best Streak -->
   <div class="p-4 rounded-lg border-2 border-gray-400">
-    <div class="text-3xl font-bold mb-1" style="color: #ed8332;" id="statsBestStreak">0</div>
+    <div class="text-3xl font-bold mb-1" style="color: #f28f4c;" id="statsBestStreak">0</div>
     <div class="text-sm text-gray-500">Best Streak</div>
   </div>
 </div>
 
                 <!-- Reset Button -->
                 <div class="mt-6 text-center">
-                  <button id="resetStatsBtn" class="text-gray-400 hover:text-[#ed8332] transition-colors text-sm underline decoration-gray-400 hover:decoration-[#ed8332]">
+                  <button id="resetStatsBtn" class="text-gray-400 hover:text-[#f28f4c] transition-colors text-sm underline decoration-gray-400 hover:decoration-[#f28f4c]">
                     Reset Statistics
                   </button>
                 </div>
@@ -564,7 +563,7 @@ h1 {
 <div id="searchContainer" class="bg-white rounded-lg shadow-lg p-4 mb-4">
     
     <label class="block text-sm font-medium mb-2">
-    <span id="guessLabel" style="color: #ed8332; font-weight: 600;">9 guesses left</span>
+    <span id="guessLabel" style="color: #f28f4c; font-weight: 600;">9 guesses left</span>
 </label>
                     <div class="relative">
                         <input
@@ -605,7 +604,7 @@ h1 {
             <div class="flex flex-col">
                 <div class="bg-white rounded-lg shadow-lg p-4 mb-4">
                     <div class="flex items-center gap-2 mb-3">
-  <span class="material-icons text-xl" style="color:#ed8332;">public</span>
+  <span class="material-icons text-xl" style="color:#f28f4c;">public</span>
   <h2 class="text-xl font-bold text-gray-800">World Map</h2>
 </div>
 
@@ -717,8 +716,15 @@ function runConfetti(){
 }
 
 // Initialize map with Natural Earth style (country names only)
-map = L.map('map').setView([20, 0], 2);
-L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+map = L.map('map', {
+  minZoom: 2,
+  maxZoom: 6,
+  maxBounds: [[-90, -180], [90, 180]],
+  maxBoundsViscosity: 1.0,
+  worldCopyJump: false,
+  noWrap: true
+}).setView([20, 0], 2);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
   attribution: 'Tiles &copy; Esri',
   maxZoom: 8,
   minZoom: 2
@@ -935,11 +941,13 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 
 // Calculate direction between two points
 function calculateDirection(lat1, lon1, lat2, lon2) {
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const y = Math.sin(dLon) * Math.cos(lat2 * Math.PI / 180);
-  const x = Math.cos(lat1 * Math.PI / 180) * Math.sin(lat2 * Math.PI / 180) -
-            Math.sin(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.cos(dLon);
-  const bearing = (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+  // Simple planar direction for flat map (not wrapping)
+  const dLat = lat2 - lat1;
+  const dLon = lon2 - lon1;
+  
+  // Calculate bearing in degrees (0 = North, 90 = East, etc.)
+  const bearing = (Math.atan2(dLon, dLat) * 180 / Math.PI + 360) % 360;
+  
   const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
   const index = Math.round(bearing / 45) % 8;
   return directions[index];
@@ -1077,10 +1085,11 @@ function addMarkerToMap(guess) {
   circle.bindPopup(`<b>${country.name}</b><br>${guess.distance} km ${guess.direction}`);
   markers.push(circle);
 
-  if (markers.length > 0) {
-    const group = L.featureGroup(markers);
-    map.fitBounds(group.getBounds().pad(0.5));
-  }
+  // Zoom to the latest guessed country with smooth animation
+  map.flyTo([country.lat, country.lon], 4, {
+    duration: 1.5,  // Animation duration in seconds
+    easeLinearity: 0.25
+  });
 }
 
 // Show game status (won/lost)
@@ -1286,8 +1295,8 @@ function renderGuesses() {
 // Start game
 function startGame() {
   const today = new Date().toDateString();
-  // DEMO MODE: Force Thailand for today's demo
-  mysteryCountry = COUNTRIES_DATA.find(c => c.name === 'Thailand');
+  // DEMO MODE: Force Singapore for today's demo
+  mysteryCountry = COUNTRIES_DATA.find(c => c.name === 'Singapore');
   console.log("Today's mystery country:", mysteryCountry);
   guesses = [];
   gameState = 'playing';
