@@ -1,0 +1,1878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Where in The World - Country Guessing Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <!-- Chakra Petch font for title -->
+<link href="https://fonts.googleapis.com/css2?family=Funnel+Display:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+
+    <style>
+        .lucide-icon {
+            width: 24px;
+            height: 24px;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+        }
+    /* Dark theme overrides */
+    body {
+  background: linear-gradient(135deg, #1a1625 0%, #201221 50%, #1a1625 100%) !important;
+  background-attachment: fixed !important;
+  color: #e6e6e6 !important;
+}
+    /* Make card backgrounds dark instead of white */
+    .bg-white {
+      background-color: #232026 !important;
+      color: #e6e6e6 !important;
+    }
+    /* Make light indigo button background subtly visible */
+    .bg-indigo-50 {
+      background-color: #2b2540 !important;
+      color: #e6e6ff !important;
+    }
+    /* Grey text shades adjusted for dark background */
+    .text-gray-800, .text-gray-700, .text-gray-600 { color: #e6e6e6 !important; }
+    .text-gray-500 { color: #cfc9d6 !important; }
+    .text-gray-400 { color: #a8a0b0 !important; }
+    .text-xs, .text-sm { color: inherit !important; }
+    /* Borders and map card adjustments */
+    .border-gray-200 { border-color: #3a3440 !important; }
+    .rounded-lg { /* keep as-is */ }
+    /* Adjust small muted texts inside cards */
+    .text-green-700 { color: #86efac !important; }
+    .text-red-700 { color: #fca5a5 !important; }
+      /* Fix: make text readable in light-colored guess boxes */
+  .bg-red-50, .bg-yellow-50, .bg-green-50 {
+    color: #000 !important; /* black text */
+  }
+
+  /* Secondary text inside those boxes (Distance, Direction, etc.) */
+  .bg-red-50 .text-gray-600,
+  .bg-yellow-50 .text-gray-600,
+  .bg-green-50 .text-gray-600 {
+    color: #333 !important; /* dark gray */
+  }
+    /* Fix: dropdown text + hover colors for dark mode */
+  #searchResults {
+    background-color: #232026 !important; /* dark dropdown background */
+    color: #e6e6e6 !important;             /* light text by default */
+  }
+
+  #searchResults button {
+    background-color: transparent !important;
+    color: #e6e6e6 !important;
+  }
+
+  #searchResults button:hover {
+    background-color: #3a3440 !important; /* darker gray on hover */
+    color: #ffffff !important;            /* white text on hover */
+  }
+
+  #searchResults span.text-gray-500 {
+    color: #cfc9d6 !important; /* softer gray for continent label */
+  }
+    /* Fix: make typed text inside the search input visible */
+  #searchInput {
+    color: #000 !important;           /* black text when typing */
+    background-color: #ffffff !important; /* white background */
+  }
+
+  /* Optional – placeholder text color */
+  #searchInput::placeholder {
+    color: #555 !important; /* dark gray placeholder */
+  }
+
+  /* Focus state – subtle indigo border for consistency */
+  #searchInput:focus {
+    border-color: #6366f1 !important; /* indigo border */
+  }
+    /* Fix: result boxes (win/loss) colors for dark theme */
+  .bg-green-100 {
+    background-color: #1a2e1a !important; /* deep green background */
+    color: #d1fae5 !important;            /* light mint text */
+    border-color: #22c55e !important;     /* bright green border */
+  }
+
+  .bg-red-100 {
+    background-color: #2e1a1a !important; /* deep red background */
+    color: #fecaca !important;            /* soft pink text */
+    border-color: #ef4444 !important;     /* red border */
+  }
+
+  /* Adjust titles inside those boxes */
+  .bg-green-100 h2,
+  .bg-red-100 h2 {
+    color: #fff !important; /* white heading text */
+  }
+
+  /* Make details (capital, population, etc.) readable */
+  .bg-green-100 .text-gray-600,
+  .bg-red-100 .text-gray-600 {
+    color: #d4d4d4 !important;
+  }
+  /* Center the How to Play modal and dim the background properly */
+#howModal {
+  display: none; /* default hidden */
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.7); /* dark backdrop */
+}
+/* Center and layer the Statistics modal above the map */
+#statsModal {
+  display: none; /* hidden by default */
+  position: fixed;
+  inset: 0;
+  z-index: 5000; /* higher than Leaflet map tiles */
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+/* Show modal when not hidden */
+#statsModal:not(.hidden) {
+  display: flex !important;
+}
+
+/* Dark theme modal card */
+#statsModal .bg-white {
+  background-color: #2d2d3a !important;
+  color: #e6e6e6 !important;
+  border: 2px solid #3a3a4a !important;
+}
+
+/* Add blurred dark overlay behind it */
+#statsModal::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(2px);
+  z-index: 4999; /* below modal content */
+}
+
+/* Keep modal content above everything */
+#statsModal > div {
+  position: relative;
+  z-index: 5001;
+}
+
+
+/* When shown, use flex to center it */
+#statsModal:not(.hidden) {
+  display: flex !important;
+}
+
+/* Match dark theme styling for modal content */
+#statsModal .bg-white {
+  background-color: #2d2d3a !important;
+  color: #e6e6e6 !important;
+  border: 2px solid #3a3a4a !important;
+}
+
+/* Optional: add blur and layering like How to Play */
+#statsModal::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(2px);
+  z-index: 4999;
+}
+
+#statsModal > div {
+  position: relative;
+  z-index: 5001;
+}
+
+
+/* When modal is shown (JS removes .hidden), use flexbox to center */
+#howModal:not(.hidden) {
+  display: flex !important;
+}
+
+/* Modal content styling for dark theme */
+#howModal .bg-white {
+  background-color: #2d2d3a !important;
+  color: #e6e6e6 !important;
+  border: 2px solid #3a3a4a !important;
+}
+
+#howModal h3 {
+  color: #ffffff !important;
+}
+
+/* Allow hints to wrap properly after animation */
+#globalHints li {
+  white-space: normal !important;
+  word-wrap: break-word;
+}
+
+#globalHints .hint-item {
+  white-space: nowrap;
+  display: inline-block;
+}
+
+#howModal li {
+  color: #e0e0e0 !important;
+}
+
+#howCloseBtn {
+  color: #ccc !important;
+}
+
+#howCloseBtn:hover {
+  color: #fff !important;
+}
+  /* Ensure the How to Play modal always stays above the map */
+  #howModal {
+    z-index: 5000 !important; /* higher than Leaflet map tiles */
+  }
+
+  /* Also raise its background overlay if needed */
+  #howModal::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(2px); /* optional frosted blur effect */
+    z-index: 4999;
+  }
+
+  /* Make sure the modal content stays above the overlay */
+  #howModal > div {
+    position: relative;
+    z-index: 5001;
+  }
+  /* Body font */
+body {
+  font-family: 'Funnel Display', sans-serif;
+}
+  /* Title styling - using SVG logo now, but keeping for any other h1 elements */
+h1 {
+  font-family: 'Funnel Display', sans-serif;
+  color: #3cded9;
+  font-weight: 700;
+}
+
+/* Typewriter animation for hints */
+@keyframes typewriter {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@keyframes blink {
+  50% { border-color: transparent; }
+}
+
+.hint-item {
+  overflow: hidden;
+  white-space: nowrap;
+  animation: typewriter 3s steps(60) forwards;
+  display: inline-block;
+  max-width: 100%;
+}
+
+.hint-item.typing {
+  border-right: 2px solid #f28f4c;
+  animation: typewriter 3s steps(60) forwards, blink 1.5s step-end infinite;
+}
+
+.hint-key {
+  color: #f28f4c !important;
+  font-weight: 600;
+}
+
+/* Fade in animation for hint container */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hint-container {
+  animation: fadeInUp 0.8s ease-out forwards;
+}
+
+
+/* Responsive header adjustments */
+
+/* Extra small devices (phones, 320px to 480px) */
+@media (max-width: 480px) {
+  img[alt="Where in The World"] {
+    max-width: 240px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    margin-top: 0 !important;
+  }
+  body {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+}
+
+/* Small devices (tablets portrait, 481px to 640px) */
+@media (min-width: 481px) and (max-width: 640px) {
+  img[alt="Where in The World"] {
+    max-width: 300px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    margin-top: 0 !important;
+  }
+}
+
+/* Medium devices (tablets landscape, 641px to 768px) */
+@media (min-width: 641px) and (max-width: 768px) {
+  img[alt="Where in The World"] {
+    max-width: 350px !important;
+    margin-left: -20px !important;
+    margin-top: -5px !important;
+  }
+}
+
+/* Large devices (small laptops, 769px to 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  img[alt="Where in The World"] {
+    max-width: 400px !important;
+    margin-left: -35px !important;
+    margin-top: -8px !important;
+  }
+}
+
+/* XL devices (desktops, 1025px to 1366px) - your laptop */
+@media (min-width: 1025px) and (max-width: 1366px) {
+  img[alt="Where in The World"] {
+    max-width: 450px !important;
+    margin-left: -45px !important;
+    margin-top: -8px !important;
+  }
+}
+
+/* 2XL devices (large desktops, 1367px to 1920px) - Full HD */
+@media (min-width: 1367px) and (max-width: 1920px) {
+  img[alt="Where in The World"] {
+    max-width: 500px !important;
+    margin-left: -55px !important;
+    margin-top: -8px !important;
+  }
+}
+
+/* 3XL devices (ultra-wide monitors, 1921px+) - 2K, 4K, Ultrawide */
+@media (min-width: 1921px) {
+  img[alt="Where in The World"] {
+    max-width: 550px !important;
+    margin-left: -60px !important;
+    margin-top: -8px !important;
+  }
+}
+
+/* Special handling for very tall screens (increase vertical spacing) */
+@media (min-height: 900px) {
+  .max-w-7xl {
+    padding-top: 2rem !important;
+  }
+}
+
+/* Special handling for ultrawide aspect ratios (21:9, 32:9) */
+@media (min-aspect-ratio: 21/9) {
+  img[alt="Where in The World"] {
+    max-width: 600px !important;
+  }
+}
+
+/* Responsive map heights */
+@media (max-width: 640px) {
+  #map {
+    height: 250px !important;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  #map {
+    height: 320px !important;
+  }
+}
+
+@media (min-width: 1921px) {
+  #map {
+    height: 500px !important;
+  }
+}
+
+/* Victory Modal Animations */
+#victoryModal:not(.hidden) {
+  display: flex !important;
+}
+
+#victoryModal .bg-white {
+  background-color: #2d2d3a !important;
+  color: #e6e6e6 !important;
+  border: 2px solid #3a3a4a !important;
+}
+
+/* Slide-up animation for victory modal */
+#victoryModal:not(.hidden) #victoryModalContent {
+  animation: slideUpScale 0.5s ease-out forwards;
+}
+
+@keyframes slideUpScale {
+  0% {
+    transform: translateY(50px) scale(0.9);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Fun fact box gradient for dark theme */
+#victoryModal .bg-gradient-to-br {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%) !important;
+}
+/* Victory Modal Animations */
+#victoryModal:not(.hidden) {
+  display: flex !important;
+}
+
+/* Loss Modal Animations - same as victory */
+#lossModal:not(.hidden) {
+  display: flex !important;
+}
+
+#lossModal .bg-white {
+  background-color: #2d2d3a !important;
+  color: #e6e6e6 !important;
+  border: 2px solid #3a3a4a !important;
+}
+
+#lossModal:not(.hidden) #lossModalContent {
+  animation: slideUpScale 0.5s ease-out forwards;
+}
+
+#lossModal .bg-gradient-to-br {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%) !important;
+}
+/* Drop shadow for map markers */
+.map-marker-shadow {
+  filter: drop-shadow(0 0 8px rgba(82, 82, 82, 0.8)) 
+          drop-shadow(0 0 3px rgba(255, 255, 255, 0.6));
+}
+    </style>
+</head>
+<body class="min-h-screen px-3 sm:px-6 md:px-10 lg:px-16 xl:px-20 py-2" style="background: linear-gradient(135deg, #1a1625 0%, #2d2640 50%, #1a1625 100%);">
+    <div class="max-w-7xl mx-auto">
+    
+
+<!-- Header -->
+<div class="px-0 py-2 mb-4 sm:mb-6 relative w-full">
+    <div class="flex flex-col sm:flex-row justify-between items-center sm:items-start gap-4 sm:gap-6 w-full">
+        
+<!-- Left side - SVG Logo -->
+<img src="logo.svg" alt="Where in The World" class="w-full sm:w-auto" style="height: auto; display: block;" />
+        
+        <!-- Right side - buttons -->
+        
+<div class="flex gap-3 sm:gap-4 text-sm items-center flex-shrink-0">
+            <!-- Stats button -->
+            <button
+  id="statsBtn"
+  aria-expanded="false"
+  aria-controls="statsModal"
+  type="button"
+  aria-label="Statistics"
+  class="inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 border-2 border-gray-400 text-gray-300 rounded-lg hover:border-[#f28f4c] hover:text-[#f28f4c] focus:outline-none focus:ring-2 focus:ring-[#f28f4c] transition-colors"
+>
+  <span class="material-icons text-lg sm:text-xl">bar_chart</span>
+</button>
+            <!-- How to play button -->
+            <button
+  id="howBtn"
+  aria-expanded="false"
+  aria-controls="howModal"
+  type="button"
+  aria-label="How to play"
+  class="inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 border-2 border-gray-400 text-gray-300 rounded-lg hover:border-[#f28f4c] hover:text-[#f28f4c] focus:outline-none focus:ring-2 focus:ring-[#f28f4c] transition-colors"
+>
+  <span class="material-icons text-lg sm:text-xl">help_outline</span>
+</button>
+        </div>
+    </div>
+</div>
+            
+                        
+
+
+            <!-- Centered modal for How to Play (hidden by default) -->
+            <div id="howModal" role="dialog" aria-modal="true" aria-hidden="true" tabindex="-1" class="hidden fixed inset-0 z-50 items-center justify-center bg-black bg-opacity-50 px-4">
+              <div class="bg-white rounded-lg shadow-xl max-w-lg w-full max-h-[80vh] overflow-auto p-6 relative">
+                <button id="howCloseBtn" aria-label="Close How to Play" class="absolute top-3 right-3 text-gray-600 hover:text-gray-800 focus:outline-none">
+                  <svg class="lucide-icon w-5 h-5" viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+                <h3 class="text-2xl font-bold text-orange-500 mb-4">How to Play</h3>
+<ul class="space-y-5 text-sm text-gray-200 leading-relaxed">
+  <li class="flex items-start gap-3">
+    <span class="material-icons text-lg flex-shrink-0" style="color:#f28f4c">check_circle</span>
+    <span>Every day you get a new country to guess.</span>
+  </li>
+  <li class="flex items-start gap-3">
+    <span class="material-icons text-lg flex-shrink-0" style="color:#f28f4c">favorite</span>
+    <span>You have <strong class="text-red-400">10 guesses</strong>. New hints will appear as you play.</span>
+  </li>
+  <li class="flex items-start gap-3">
+    <span class="material-icons text-lg flex-shrink-0" style="color:#f28f4c">place</span>
+    <div>
+      <div class="mb-2">Colored circles mark your guesses on the map:</div>
+      <div class="flex flex-wrap gap-3 pl-2 text-xs">
+        <span class="flex items-start gap-1">
+          <span class="inline-block w-3 h-3 rounded-full" style="background:#4ADE80;"></span> Correct
+        </span>
+        <span class="flex items-start gap-1">
+          <span class="inline-block w-3 h-3 rounded-full" style="background:#FFE066;"></span> Close (within 1000km or same continent)
+        </span>
+        <span class="flex items-start gap-1">
+          <span class="inline-block w-3 h-3 rounded-full" style="background:#F87171;"></span> Far away
+        </span>
+      </div>
+    </div>
+  </li>
+  <li class="flex items-start gap-3">
+    <span class="material-icons text-lg flex-shrink-0" style="color:#f28f4c">info</span>
+    <span>When you win or lose, you'll see interesting facts about the country including its capital, population, largest city, and more!</span>
+  </li>
+  <li class="flex items-center gap-3">
+    <span class="material-icons text-lg flex-shrink-0" style="color:#f28f4c">calendar_today</span>
+    <span>A new mystery country unlocks every day at midnight!</span>
+  </li>
+</ul>
+              </div>
+            </div>
+        </div>
+        <!-- Stats Modal -->
+            <div id="statsModal" role="dialog" aria-modal="true" aria-hidden="true" tabindex="-1" class="hidden fixed inset-0 z-50 items-center justify-center bg-black bg-opacity-50 px-4">
+              <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full p-12 relative">
+                <button id="statsCloseBtn" aria-label="Close Statistics" class="absolute top-3 right-3 text-gray-600 hover:text-gray-800 focus:outline-none">
+                  <svg class="lucide-icon w-5 h-5" viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+                <h3 class="text-2xl font-bold mb-4" style="color: #ffffff;">Statistics</h3>
+                
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+  <!-- Played -->
+  <div class="p-4 rounded-lg border-2 border-gray-400">
+    <div class="text-3xl font-bold mb-1" style="color: #f28f4c;" id="statsPlayed">0</div>
+    <div class="text-sm text-gray-500">Played</div>
+  </div>
+
+  <!-- Win % -->
+  <div class="p-4 rounded-lg border-2 border-gray-400">
+    <div class="text-3xl font-bold mb-1" style="color: #f28f4c;" id="statsWinPercent">0</div>
+    <div class="text-sm text-gray-500">Win %</div>
+  </div>
+
+  <!-- Current Streak -->
+  <div class="p-4 rounded-lg border-2 border-gray-400">
+    <div class="text-3xl font-bold mb-1" style="color: #f28f4c;" id="statsCurrentStreak">0</div>
+    <div class="text-sm text-gray-500">Current Streak</div>
+  </div>
+
+  <!-- Best Streak -->
+  <div class="p-4 rounded-lg border-2 border-gray-400">
+    <div class="text-3xl font-bold mb-1" style="color: #f28f4c;" id="statsBestStreak">0</div>
+    <div class="text-sm text-gray-500">Best Streak</div>
+  </div>
+</div>
+
+                <!-- Reset Button -->
+                <div class="mt-6 text-center">
+                  <button id="resetStatsBtn" class="text-gray-400 hover:text-[#f28f4c] transition-colors text-sm underline decoration-gray-400 hover:decoration-[#f28f4c]">
+                    Reset Statistics
+                  </button>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Victory Modal -->
+<div id="victoryModal" role="dialog" aria-modal="true" aria-hidden="true" tabindex="-1" class="hidden fixed inset-0 z-[6000] items-center justify-center bg-black bg-opacity-70 px-4">
+  <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8 relative transform scale-95 opacity-0 transition-all duration-500" id="victoryModalContent">
+    <button id="victoryCloseBtn" aria-label="Close" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 focus:outline-none">
+      <svg class="lucide-icon w-6 h-6" viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    </button>
+    
+    <!-- Country Flag/Icon -->
+<div class="text-center mb-4">
+  <div class="inline-block mb-2">
+    <img src="celebration.svg" alt="Celebration" style="width: 80px; height: 80px; margin: 0 auto;">
+  </div>
+  <h2 class="text-3xl font-bold mb-2" style="color: #f28f4c;" id="victoryCountryName">Singapore</h2>
+  <p class="text-lg text-gray-300">You found it!</p>
+</div>
+
+    <!-- Fun Fact Section -->
+    <div class="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-6 mb-6" style="background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);">
+      <div class="flex items-start gap-3">
+        <span class="material-icons text-2xl flex-shrink-0" style="color:#f28f4c;">lightbulb</span>
+        <div>
+          <h3 class="font-bold text-gray-200 mb-2">Did you know?</h3>
+          <p class="text-sm text-gray-300 leading-relaxed" id="victoryFunFact">
+            Singapore is the only country in the world to gain independence against its own will!
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Game Stats - ALL ORANGE -->
+    <div class="grid grid-cols-3 gap-4 text-center">
+      <div class="bg-white/50 rounded-lg p-3" style="background: rgba(255,255,255,0.05);">
+        <div class="text-2xl font-bold mb-1" style="color: #f28f4c;" id="victoryGuessCount">1</div>
+        <div class="text-xs text-gray-400">Guesses</div>
+      </div>
+      <div class="bg-white/50 rounded-lg p-3" style="background: rgba(255,255,255,0.05);">
+        <div class="text-2xl font-bold mb-1" style="color: #f28f4c;" id="victoryStreak">1</div>
+        <div class="text-xs text-gray-400">Streak</div>
+      </div>
+      <div class="bg-white/50 rounded-lg p-3" style="background: rgba(255,255,255,0.05);">
+        <div class="text-2xl font-bold mb-1" style="color: #f28f4c;" id="victoryWinRate">100%</div>
+        <div class="text-xs text-gray-400">Win Rate</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Loss Modal -->
+<div id="lossModal" role="dialog" aria-modal="true" aria-hidden="true" tabindex="-1" class="hidden fixed inset-0 z-[6000] items-center justify-center bg-black bg-opacity-70 px-4">
+  <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8 relative transform scale-95 opacity-0 transition-all duration-500" id="lossModalContent">
+    <button id="lossCloseBtn" aria-label="Close" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 focus:outline-none">
+      <svg class="lucide-icon w-6 h-6" viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    </button>
+    
+    <!-- Country Icon -->
+    <div class="text-center mb-4">
+      <div class="inline-block mb-2">
+        <img src="tryagain.svg" alt="Try Again" style="width: 80px; height: 80px; margin: 0 auto;">
+      </div>
+      <h2 class="text-3xl font-bold mb-2" style="color: #ffffff;">Game Over!</h2>
+      <p class="text-lg text-gray-300 mb-2">Better luck next time</p>
+      <p class="text-md text-gray-400">The answer was: <span class="font-bold" style="color: #f28f4c;" id="lossCountryName">Singapore</span></p>
+    </div>
+
+    <!-- Fun Fact Section -->
+    <div class="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-6 mb-6" style="background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);">
+      <div class="flex items-start gap-3">
+        <span class="material-icons text-2xl flex-shrink-0" style="color:#f28f4c;">lightbulb</span>
+        <div>
+          <h3 class="font-bold text-gray-200 mb-2">Did you know?</h3>
+          <p class="text-sm text-gray-300 leading-relaxed" id="lossFunFact">
+            Nearly half of Singapore's land area is covered by greenery, and it's home to over 400 parks!
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Game Stats - ALL ORANGE -->
+    <div class="grid grid-cols-3 gap-4 text-center">
+      <div class="bg-white/50 rounded-lg p-3" style="background: rgba(255,255,255,0.05);">
+        <div class="text-2xl font-bold mb-1" style="color: #f28f4c;" id="lossGuessCount">10</div>
+        <div class="text-xs text-gray-400">Guesses</div>
+      </div>
+      <div class="bg-white/50 rounded-lg p-3" style="background: rgba(255,255,255,0.05);">
+        <div class="text-2xl font-bold mb-1" style="color: #f28f4c;" id="lossStreak">0</div>
+        <div class="text-xs text-gray-400">Streak</div>
+      </div>
+      <div class="bg-white/50 rounded-lg p-3" style="background: rgba(255,255,255,0.05);">
+        <div class="text-2xl font-bold mb-1" style="color: #f28f4c;" id="lossWinRate">0%</div>
+        <div class="text-xs text-gray-400">Win Rate</div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- ========== END LOSS MODAL ========== -->
+
+                <div class="grid lg:grid-cols-2 gap-6 items-start align-top">
+            <!-- Left Column - Game -->
+<div class="flex flex-col">
+                <!-- Game Status -->
+                <div id="gameStatus" class="mb-4 hidden"></div>
+
+                <!-- Search Input -->
+                 <!-- Always-visible color legend -->
+
+
+                <p class="text-gray-400 text-sm mb-3">Can you find today's hidden country? Each guess brings you closer.</p>
+
+<div id="searchContainer" class="bg-white rounded-lg shadow-lg p-4 mb-4">
+    
+    <label class="block text-sm font-medium mb-2">
+    <span id="guessLabel" style="color: #f28f4c; font-weight: 600;">9 guesses left</span>
+</label>
+                    <div class="relative">
+                        <input
+                            type="text"
+                            id="searchInput"
+                            placeholder="Type a country name..."
+                            class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none"
+                        />
+                        <div id="searchResults" class="absolute z-10 w-full mt-2 bg-white border-2 border-gray-200 rounded-lg shadow-xl max-h-64 overflow-y-auto hidden"></div>
+                    </div>
+                </div>
+
+                <!-- Guesses List -->
+                <!-- Guesses + Hints Grid -->
+<div id="guessesList" class="hidden">
+  <div class="grid md:grid-cols-2 gap-4">
+    
+    <!-- Your Guesses -->
+    <div class="bg-white rounded-lg shadow-lg p-4">
+      <h2 class="text-lg font-bold text-gray-200 mb-3">Your Guesses</h2>
+      <div id="guessesContainer" class="space-y-3"></div>
+    </div>
+
+    <!-- Global Hints -->
+    <div id="hintsCard" class="bg-white rounded-lg shadow-lg p-4">
+      <h2 class="text-lg font-bold text-gray-200 mb-3">Hints</h2>
+      <ul id="globalHints" class="space-y-2 text-sm text-gray-400">
+        <li>No hints yet. Start guessing!</li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+            </div>
+
+            <!-- Right Column - Map -->
+            <div class="flex flex-col">
+                <div class="bg-white rounded-lg shadow-lg p-4 mb-4">
+                    <div class="flex items-center gap-2 mb-3">
+  <span class="material-icons text-xl" style="color:#f28f4c;">public</span>
+  <h2 class="text-xl font-bold text-gray-800">World Map</h2>
+</div>
+
+                    <div id="map" class="w-full h-96 rounded-lg border-2 border-gray-200"></div>
+                    <p class="text-xs text-gray-400 mt-2 flex items-center gap-3 flex-wrap">
+  <span class="flex items-center gap-1">
+    <span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#4ADE80;"></span> Correct
+  </span>
+  <span class="flex items-center gap-1">
+    <span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#FFE066;"></span> Close (within 1000km or same continent)
+  </span>
+  <span class="flex items-center gap-1">
+    <span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#F87171;"></span> Far away
+  </span>
+</p>
+                </div>
+
+        <!-- Instructions removed from game screen; available via header popover -->
+            </div>
+        </div>
+    </div>
+<script>let COUNTRIES_DATA = [];
+let gameState = 'playing';
+let mysteryCountry = null;
+let guesses = [];
+let map = null;
+let markers = [];
+let VALID_MYSTERY_COUNTRIES = [];
+
+
+// Country details are taken from the parsed CSV and shown on win (capital, population, largest city, life expectancy, language, GDP).
+
+// Lightweight canvas confetti (no external libraries)
+function runConfetti(){
+  // create a canvas if missing
+  let canvas = document.getElementById('confettiCanvas');
+  if(!canvas){
+    canvas = document.createElement('canvas');
+    canvas.id = 'confettiCanvas';
+    canvas.style.position = 'fixed';
+    canvas.style.left = 0;
+    canvas.style.top = 0;
+    canvas.style.pointerEvents = 'none';
+    canvas.style.zIndex = 9999;
+    document.body.appendChild(canvas);
+  }
+  const ctx = canvas.getContext('2d');
+  function resize(){
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const confetti = [];
+  const colors = ['#ef4444','#f97316','#f59e0b','#22c55e','#06b6d4','#3b82f6','#8b5cf6'];
+
+  for(let i=0;i<150;i++){
+    confetti.push({
+      x: Math.random()*canvas.width,
+      y: Math.random()*-canvas.height,
+      w: 6 + Math.random()*8,
+      h: 6 + Math.random()*8,
+      vx: -3 + Math.random()*6,
+      vy: 2 + Math.random()*6,
+      color: colors[Math.floor(Math.random()*colors.length)],
+      rot: Math.random()*360,
+      vr: -5 + Math.random()*10
+    });
+  }
+
+  let start = null;
+  function step(ts){
+    if(!start) start = ts;
+    const elapsed = ts - start;
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    confetti.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += 0.05; // gravity
+      p.rot += p.vr;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot * Math.PI/180);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+      ctx.restore();
+    });
+
+    // remove off-screen pieces slowly
+    if(elapsed < 4000){
+      requestAnimationFrame(step);
+    } else {
+      // fade out
+      const fadeSteps = 30;
+      let fade = 0;
+      const fadeInterval = setInterval(()=>{
+        fade++;
+        ctx.fillStyle = `rgba(255,255,255,${fade/fadeSteps})`;
+        ctx.fillRect(0,0,canvas.width,canvas.height);
+        if(fade >= fadeSteps){
+          clearInterval(fadeInterval);
+          try{ canvas.remove(); } catch(e){}
+        }
+      }, 30);
+    }
+  }
+  requestAnimationFrame(step);
+}
+
+// Initialize map with Natural Earth style (country names only)
+map = L.map('map', {
+  minZoom: 2,
+  maxZoom: 6,
+  maxBounds: [[-90, -180], [90, 180]],
+  maxBoundsViscosity: 1.0,
+  worldCopyJump: false,
+  noWrap: true
+}).setView([20, 0], 2);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+  attribution: 'Tiles &copy; Esri',
+  maxZoom: 8,
+  minZoom: 2
+}).addTo(map);
+
+// Fetch countries data from CSV
+async function getCountriesData() {
+  try {
+    const response = await fetch('countries.csv');
+    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+    let csvText = await response.text();
+    
+    // Remove line breaks within quoted headers
+    csvText = csvText.replace(/"([^"]*)"/g, (match, content) => {
+      return '"' + content.replace(/\n/g, ' ').replace(/\r/g, '') + '"';
+    });
+    
+    // Split by newlines
+    const lines = csvText.split(/\r?\n/).filter(line => line.trim());
+    
+    // Parse header line
+    const headers = parseCSVLine(lines[0]);
+    
+    console.log('CSV Headers:', headers);
+    console.log('Total columns:', headers.length);
+
+    // Find column indices by flexible matching (case-insensitive, partial) so the CSV header can vary
+    const countryIdx = 0; // First column is Country
+    const findHeaderIdx = (needle) => headers.findIndex(h => h && h.toLowerCase().includes(needle));
+    const latIdx = findHeaderIdx('latitude');
+    const lonIdx = findHeaderIdx('longitude');
+    const populationIdx = findHeaderIdx('population');
+    const abbreviationIdx = findHeaderIdx('abbreviation');
+    const capitalIdx = findHeaderIdx('capital');
+    const largestCityIdx = findHeaderIdx('largest');
+    const lifeExpectancyIdx = findHeaderIdx('life expectancy') !== -1 ? findHeaderIdx('life expectancy') : findHeaderIdx('life');
+    const officialLanguageIdx = findHeaderIdx('official language') !== -1 ? findHeaderIdx('official language') : findHeaderIdx('official');
+    const gdpIdx = findHeaderIdx('gdp');
+    const currencyIdx = findHeaderIdx('currency-code') !== -1
+  ? findHeaderIdx('currency-code')
+  : findHeaderIdx('currency');
+
+
+
+    console.log('Column Indices - Country:', countryIdx, 'Lat:', latIdx, 'Lon:', lonIdx, 'Pop:', populationIdx, 'Abbr:', abbreviationIdx, 'Capital:', capitalIdx, 'Largest:', largestCityIdx, 'Life:', lifeExpectancyIdx, 'Lang:', officialLanguageIdx, 'GDP:', gdpIdx);
+
+    console.log("Currency index:", currencyIdx, "First few currency values:",
+  lines.slice(1, 5).map(l => parseCSVLine(l)[currencyIdx]));
+
+
+    if (latIdx === -1 || lonIdx === -1) {
+      throw new Error('Latitude or Longitude columns not found');
+    }
+    
+    // Parse data rows
+    COUNTRIES_DATA = [];
+    for (let i = 1; i < lines.length; i++) {
+      if (!lines[i].trim()) continue;
+      
+      const row = parseCSVLine(lines[i]);
+      
+      if (row.length < 10) continue; // Skip malformed rows
+      
+      const country = row[countryIdx]?.trim();
+      const lat = parseFloat(row[latIdx]);
+      const lon = parseFloat(row[lonIdx]);
+  const populationStr = row[populationIdx]?.replace(/,/g, '').replace(/"/g, '');
+  const population = parseInt(populationStr);
+  const code = row[abbreviationIdx]?.trim() || '';
+  const capital = capitalIdx !== -1 ? row[capitalIdx]?.trim() : '';
+  const largestCity = largestCityIdx !== -1 ? row[largestCityIdx]?.trim() : '';
+  const lifeExpectancyRaw = lifeExpectancyIdx !== -1 ? row[lifeExpectancyIdx]?.trim() : '';
+  const lifeExpectancy = lifeExpectancyRaw ? parseFloat(lifeExpectancyRaw) : null;
+  const officialLanguage = officialLanguageIdx !== -1 ? row[officialLanguageIdx]?.trim() : '';
+  const gdpRaw = gdpIdx !== -1 ? row[gdpIdx]?.trim() : '';
+  const currency = currencyIdx !== -1 ? row[currencyIdx]?.trim() : '';
+
+
+      
+      // Only add countries with valid coordinates
+      if (country && !isNaN(lat) && !isNaN(lon) && Math.abs(lat) > 0.01 && Math.abs(lon) > 0.01) {
+        COUNTRIES_DATA.push({
+          id: COUNTRIES_DATA.length + 1,
+          name: country,
+          code: code,
+          lat: lat,
+          lon: lon,
+          continent: getContinent(lat, lon),
+          populationCategory: isNaN(population) ? 'Unknown' :
+            population > 100000000 ? "Very Large" :
+            population > 50000000 ? "Large" :
+            population > 10000000 ? "Medium" : "Small",
+          populationNumber: isNaN(population) ? null : population,
+          populationRaw: populationStr || '',
+          capital: capital || '',
+          largestCity: largestCity || '',
+          lifeExpectancy: lifeExpectancy,
+          officialLanguage: officialLanguage || '',
+          gdp: gdpRaw || '',
+          currency: currency || '',
+          region: getRegion(lat, lon),
+          borders: 0
+        });
+      }
+    }
+    
+    console.log("Fetched countries:", COUNTRIES_DATA.length);
+    console.log("First 3 countries:", COUNTRIES_DATA.slice(0, 3));
+    
+    if (COUNTRIES_DATA.length === 0) {
+      alert('No countries loaded! Check CSV format.');
+      return;
+    }
+    // ✅ Keep all fields but only filter which countries can be chosen
+VALID_MYSTERY_COUNTRIES = COUNTRIES_DATA.filter(c =>
+  c.lat && c.lon &&
+  c.capital && c.capital.length > 0 &&
+  c.populationNumber && c.populationNumber > 500000 &&
+  c.continent !== "Unknown"
+);
+console.log("Example from valid mystery pool:", VALID_MYSTERY_COUNTRIES[0]);
+
+
+console.log("Total countries:", COUNTRIES_DATA.length);
+console.log("Valid mystery pool:", VALID_MYSTERY_COUNTRIES.length);
+
+
+    startGame();
+  } catch (error) {
+    console.error("Failed to load countries:", error);
+    alert("Failed to load country data: " + error.message);
+  }
+}
+
+// Parse CSV line handling quoted fields with commas
+function parseCSVLine(line) {
+  const result = [];
+  let current = '';
+  let inQuotes = false;
+  
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    const nextChar = line[i + 1];
+    
+    if (char === '"') {
+      if (inQuotes && nextChar === '"') {
+        current += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (char === ',' && !inQuotes) {
+      result.push(current.trim());
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  
+  result.push(current.trim());
+  return result;
+}
+// Get continent based on coordinates (approximate)
+function getContinent(lat, lon) {
+  if (lat > 35 && lon > -30 && lon < 60) return "Europe";
+  if (lat > -35 && lat < 40 && lon > 25 && lon < 60) return "Africa";
+  if (lat > -10 && lat < 80 && lon > 60) return "Asia";
+  if (lat > 15 && lon > -170 && lon < -30) return "North America";
+  if (lat < 15 && lat > -60 && lon > -90 && lon < -30) return "South America";
+  if (lat < -10 && lon > 110) return "Oceania";
+  return "Unknown";
+}
+
+// Get region based on coordinates (approximate)
+function getRegion(lat, lon) {
+  if (lat > 45 && lon > -30 && lon < 60) return "Northern Europe";
+  if (lat > 35 && lat <= 45 && lon > -10 && lon < 30) return "Southern Europe";
+  if (lat > 45 && lon > -10 && lon < 30) return "Western Europe";
+  if (lat > 35 && lon > 30 && lon < 60) return "Eastern Europe";
+  if (lat > 0 && lat < 40 && lon > 25 && lon < 60) return "Northern Africa";
+  if (lat < 0 && lon > 25 && lon < 60) return "Southern Africa";
+  if (lat > 30 && lon > 60 && lon < 150) return "Eastern Asia";
+  if (lat > 0 && lat < 30 && lon > 60 && lon < 100) return "Southern Asia";
+  if (lat > 0 && lat < 30 && lon > 100 && lon < 150) return "South-Eastern Asia";
+  if (lat > 30 && lon > -130 && lon < -60) return "Northern America";
+  if (lat > 0 && lat < 30 && lon > -120 && lon < -60) return "Central America";
+  if (lat < 0 && lon > -90 && lon < -30) return "South America";
+  if (lat < -10 && lon > 110) return "Australia and New Zealand";
+  return "Unknown";
+}
+
+// Select daily country
+function selectDailyCountry(dateString, countries) {
+  let hash = 0;
+  for (let i = 0; i < dateString.length; i++) {
+    hash = ((hash << 5) - hash) + dateString.charCodeAt(i);
+    hash = hash & hash;
+  }
+  const index = Math.abs(hash) % countries.length;
+  return countries[index];
+}
+
+// Calculate distance between two points
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return Math.round(R * c);
+}
+
+// Calculate direction between two points
+function calculateDirection(lat1, lon1, lat2, lon2) {
+  // Simple planar direction for flat map (not wrapping)
+  const dLat = lat2 - lat1;
+  const dLon = lon2 - lon1;
+  
+  // Calculate bearing in degrees (0 = North, 90 = East, etc.)
+  const bearing = (Math.atan2(dLon, dLat) * 180 / Math.PI + 360) % 360;
+  
+  const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+  const index = Math.round(bearing / 45) % 8;
+  return directions[index];
+}
+
+// Converts population number into an "over/under" sentence
+function getPopulationHint(population) {
+  if (!population || isNaN(population)) return "Population data unavailable.";
+  if (population < 1_000_000) return "The population is under 1 million.";
+  if (population < 10_000_000) return "The population is over 1 million.";
+  if (population < 50_000_000) return "The population is over 10 million.";
+  if (population < 100_000_000) return "The population is over 50 million.";
+  return "The population is over 100 million.";
+}
+
+
+// Get hints based on attempt number
+// 🎯 Updated hints: Distance+Direction always shown in UI
+// 🎯 Updated hints sequence for 10 guesses
+// 🎯 Balanced 10-guess hint structure
+// Get hints based on attempt number
+// Get hints based on attempt number
+// Get hints based on attempt number
+function getHints(attemptNumber) {
+  const hints = {};
+
+  // 2nd guess → Continent
+  if (attemptNumber >= 2 && mysteryCountry.continent && mysteryCountry.continent !== "Unknown") {
+    hints.continent = `The country is in <span class="hint-key">${mysteryCountry.continent}</span>.`;
+  }
+
+  // 4th guess → Subregion
+  if (attemptNumber >= 4 && mysteryCountry.region && mysteryCountry.region !== "Unknown") {
+    hints.region = `It is part of <span class="hint-key">${mysteryCountry.region}</span>.`;
+  }
+
+  // 6th guess → Population
+  if (attemptNumber >= 6 && mysteryCountry.populationNumber) {
+    hints.population = getPopulationHint(mysteryCountry.populationNumber);
+  }
+
+  // 8th guess → Currency
+  if (attemptNumber >= 8 && mysteryCountry.currency && mysteryCountry.currency !== "Unknown") {
+    hints.currency = `The country's currency code is <span class="hint-key">${mysteryCountry.currency}</span>.`;
+  }
+
+  // 9th guess → First letter of capital (appears before final guess)
+  if (attemptNumber >= 9 && mysteryCountry.capital && mysteryCountry.capital.length > 0) {
+    hints.capitalLetter = `The capital city starts with the letter <span class="hint-key">${mysteryCountry.capital[0].toUpperCase()}</span>.`;
+  }
+
+  return hints;
+}
+
+
+
+
+// Handle user guess
+function handleGuess(country) {
+  if (gameState !== 'playing' || guesses.length >= 10) return;
+
+  const distance = calculateDistance(
+    country.lat, country.lon,
+    mysteryCountry.lat, mysteryCountry.lon
+  );
+  const direction = calculateDirection(
+    country.lat, country.lon,
+    mysteryCountry.lat, mysteryCountry.lon
+  );
+
+  let color = 'red';
+  if (country.id === mysteryCountry.id) {
+    color = 'green';
+  } else if (distance < 1000 || country.continent === mysteryCountry.continent) {
+    color = 'yellow';
+  }
+
+  const newGuess = {
+    country,
+    distance,
+    direction,
+    color,
+    hints: getHints(guesses.length + 1)
+  };
+
+  guesses.push(newGuess);
+  addMarkerToMap(newGuess);
+  renderGuesses();
+  renderGlobalHints();   // update the Hints card
+
+  
+  document.getElementById('searchInput').value = '';
+  document.getElementById('searchResults').classList.add('hidden');
+  const guessesLeft = 10 - guesses.length;
+document.getElementById('guessLabel').textContent = guessesLeft === 1 ? '1 guess left' : `${guessesLeft} guesses left`;
+
+  if (country.id === mysteryCountry.id) {
+    gameState = 'won';
+    const currentStreak = parseInt(localStorage.getItem('currentStreak') || '0') + 1;
+    const bestStreak = Math.max(currentStreak, parseInt(localStorage.getItem('bestStreak') || '0'));
+    localStorage.setItem('currentStreak', currentStreak);
+    localStorage.setItem('bestStreak', bestStreak);
+    
+    showGameStatus('won');
+      // Update played and win counts
+  const gamesPlayed = parseInt(localStorage.getItem('gamesPlayed') || '0') + 1;
+  const gamesWon = parseInt(localStorage.getItem('gamesWon') || '0') + 1;
+  localStorage.setItem('gamesPlayed', gamesPlayed);
+  localStorage.setItem('gamesWon', gamesWon);
+
+  } else if (guesses.length >= 10) {
+    gameState = 'lost';
+    localStorage.setItem('currentStreak', '0');
+        showGameStatus('lost');
+          const gamesPlayed = parseInt(localStorage.getItem('gamesPlayed') || '0') + 1;
+  localStorage.setItem('gamesPlayed', gamesPlayed);
+
+  }
+}
+
+// Add marker to map
+function addMarkerToMap(guess) {
+  const country = guess.country;
+  const color = guess.color === 'green' ? '#4ADE80' : 
+               guess.color === 'yellow' ? '#FFE066' : '#F87171';
+  
+  const circle = L.circle([country.lat, country.lon], {
+    color: color,
+    fillColor: color,
+    fillOpacity: 0.5,
+    radius: 300000,
+    weight: 4,
+    className: 'map-marker-shadow'
+  }).addTo(map);
+  
+  circle.bindPopup(`<b>${country.name}</b><br>${guess.distance} km ${guess.direction}`);
+  markers.push(circle);
+
+  // Zoom to the latest guessed country with smooth animation
+  map.flyTo([country.lat, country.lon], 4, {
+    duration: 1.5,  // Animation duration in seconds
+    easeLinearity: 0.25
+  });
+}
+
+
+// Show game status (won/lost)
+function showGameStatus(status) {
+  const statusDiv = document.getElementById('gameStatus');
+  
+  if (status === 'won') {
+    // Hide the search container immediately
+    document.getElementById('searchContainer').classList.add('hidden');
+    
+    // Launch confetti first
+    try { runConfetti(); } catch(e){ console.warn('Confetti failed', e); }
+    
+    // Wait 0.5 seconds, then show victory popup
+    setTimeout(() => {
+      showVictoryPopup();
+    }, 300);
+    
+  } else {
+    // Loss - hide search container and show loss popup after brief delay
+    document.getElementById('searchContainer').classList.add('hidden');
+    
+    // Wait 0.5 seconds, then show loss popup
+    setTimeout(() => {
+      showLossPopup();
+    }, 300);
+  }
+}
+
+// Show victory popup with fun fact
+
+// Show game status (won/lost)
+function showGameStatus(status) {
+  const statusDiv = document.getElementById('gameStatus');
+  
+  if (status === 'won') {
+    // Hide the search container immediately
+    document.getElementById('searchContainer').classList.add('hidden');
+    
+    // Launch confetti first
+    try { runConfetti(); } catch(e){ console.warn('Confetti failed', e); }
+    
+    // Wait 0.5 seconds, then show victory popup
+    setTimeout(() => {
+      showVictoryPopup();
+    }, 500);
+    
+  } else {
+    // Loss - hide search container and show loss popup after brief delay
+    document.getElementById('searchContainer').classList.add('hidden');
+    
+    // Wait 0.5 seconds, then show loss popup
+    setTimeout(() => {
+      showLossPopup();
+    }, 500);
+  }
+}
+
+// Show victory popup with fun fact
+function showVictoryPopup() {
+  const modal = document.getElementById('victoryModal');
+  const countryNameEl = document.getElementById('victoryCountryName');
+  const funFactEl = document.getElementById('victoryFunFact');
+  const guessCountEl = document.getElementById('victoryGuessCount');
+  const streakEl = document.getElementById('victoryStreak');
+  const winRateEl = document.getElementById('victoryWinRate');
+  
+  // Fun fact for Singapore (demo)
+  const singaporeFunFacts = [
+    "Nearly half of Singapore's land area is covered by greenery, and it's home to over 400 parks!"
+  ];
+  
+  // Select random fun fact
+  const randomFact = singaporeFunFacts[Math.floor(Math.random() * singaporeFunFacts.length)];
+  
+  // Calculate stats
+  const gamesPlayed = parseInt(localStorage.getItem('gamesPlayed') || '1');
+  const gamesWon = parseInt(localStorage.getItem('gamesWon') || '1');
+  const currentStreak = parseInt(localStorage.getItem('currentStreak') || '1');
+  const winRate = gamesPlayed > 0 ? Math.round((gamesWon / gamesPlayed) * 100) : 100;
+  
+  // Update modal content
+  countryNameEl.textContent = mysteryCountry.name;
+  funFactEl.textContent = randomFact;
+  guessCountEl.textContent = guesses.length;
+  streakEl.textContent = currentStreak;
+  winRateEl.textContent = winRate + '%';
+  
+  // Show modal with animation
+  modal.classList.remove('hidden');
+  modal.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+}
+
+// Show loss popup with fun fact
+function showLossPopup() {
+  const modal = document.getElementById('lossModal');
+  const countryNameEl = document.getElementById('lossCountryName');
+  const funFactEl = document.getElementById('lossFunFact');
+  const guessCountEl = document.getElementById('lossGuessCount');
+  const streakEl = document.getElementById('lossStreak');
+  const winRateEl = document.getElementById('lossWinRate');
+  
+  // Fun fact for Singapore (demo)
+  const singaporeFunFacts = [
+    "Nearly half of Singapore's land area is covered by greenery, and it's home to over 400 parks!"
+  ];
+  
+  // Select random fun fact
+  const randomFact = singaporeFunFacts[Math.floor(Math.random() * singaporeFunFacts.length)];
+  
+  // Calculate stats
+  const gamesPlayed = parseInt(localStorage.getItem('gamesPlayed') || '1');
+  const gamesWon = parseInt(localStorage.getItem('gamesWon') || '0');
+  const currentStreak = 0; // Lost, so streak is 0
+  const winRate = gamesPlayed > 0 ? Math.round((gamesWon / gamesPlayed) * 100) : 0;
+  
+  // Update modal content
+  countryNameEl.textContent = mysteryCountry.name;
+  funFactEl.textContent = randomFact;
+  guessCountEl.textContent = guesses.length;
+  streakEl.textContent = currentStreak;
+  winRateEl.textContent = winRate + '%';
+  
+  // Show modal with animation
+  modal.classList.remove('hidden');
+  modal.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+}
+
+// Show loss popup with fun fact
+function showLossPopup() {
+  const modal = document.getElementById('lossModal');
+  const countryNameEl = document.getElementById('lossCountryName');
+  const funFactEl = document.getElementById('lossFunFact');
+  const guessCountEl = document.getElementById('lossGuessCount');
+  const streakEl = document.getElementById('lossStreak');
+  const winRateEl = document.getElementById('lossWinRate');
+  
+  // Fun fact for Singapore (demo)
+  const singaporeFunFacts = [
+    "Nearly half of Singapore's land area is covered by greenery, and it's home to over 400 parks!"
+  ];
+  
+  // Select random fun fact
+  const randomFact = singaporeFunFacts[Math.floor(Math.random() * singaporeFunFacts.length)];
+  
+  // Calculate stats
+  const gamesPlayed = parseInt(localStorage.getItem('gamesPlayed') || '1');
+  const gamesWon = parseInt(localStorage.getItem('gamesWon') || '0');
+  const currentStreak = 0; // Lost, so streak is 0
+  const winRate = gamesPlayed > 0 ? Math.round((gamesWon / gamesPlayed) * 100) : 0;
+  
+  // Update modal content
+  countryNameEl.textContent = mysteryCountry.name;
+  funFactEl.textContent = randomFact;
+  guessCountEl.textContent = guesses.length;
+  streakEl.textContent = currentStreak;
+  winRateEl.textContent = winRate + '%';
+  
+  // Show modal with animation
+  modal.classList.remove('hidden');
+  modal.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+}
+
+// Convert direction letters (N, NE, etc.) to arrow emojis
+function getDirectionArrow(dir) {
+  const arrows = {
+    N: "⬆️",
+    NE: "↗️",
+    E: "➡️",
+    SE: "↘️",
+    S: "⬇️",
+    SW: "↙️",
+    W: "⬅️",
+    NW: "↖️"
+  };
+  // Return arrow with neutral light-gray color
+  return arrows[dir]
+    ? `<span style="color:#e6e6e6; font-size:1.1em;">${arrows[dir]}</span>`
+    : "";
+}
+
+// Render guesses list
+// Render guesses list
+// Render global hints (shared mystery-country hints)
+// Render global hints (shared mystery-country hints)
+// Render global hints (shared mystery-country hints)
+// Render global hints (shared mystery-country hints)
+function renderGlobalHints() {
+  const hintsContainer = document.getElementById("globalHints");
+  const attemptNumber = guesses.length;
+  const hints = getHints(attemptNumber);
+
+  // Get all hint values as array
+  const hintValues = Object.values(hints);
+  
+  // if no hints yet
+  if (hintValues.length === 0) {
+    hintsContainer.innerHTML = `<li class="text-gray-400">No hints yet. Start guessing!</li>`;
+    return;
+  }
+
+  // Count how many hints are already displayed (excluding the placeholder and animating ones)
+  const existingHints = hintsContainer.querySelectorAll('li.hint-container').length;
+  
+  // Clear the "no hints" placeholder if this is the first real hint
+  if (existingHints === 0 && hintsContainer.innerHTML.includes('No hints yet')) {
+    hintsContainer.innerHTML = '';
+  }
+  
+  // Only animate NEW hints (ones that weren't there before)
+  if (existingHints < hintValues.length) {
+    // Add only the new hint(s)
+    for (let i = existingHints; i < hintValues.length; i++) {
+      const hint = hintValues[i];
+      
+      const li = document.createElement('li');
+      li.className = 'hint-container text-gray-300 text-sm mb-2 animating';
+      
+      // Style the hint with bold orange keywords
+      const styledHint = styleHint(hint);
+      
+      li.innerHTML = `<span class="hint-item typing">${styledHint}</span>`;
+      hintsContainer.appendChild(li);
+
+      // Remove typing cursor and animation flag after animation completes
+      setTimeout(() => {
+        const hintSpan = li.querySelector('.hint-item');
+        if (hintSpan) {
+          hintSpan.classList.remove('typing');
+        }
+        li.classList.remove('animating');
+      }, 3000); // 3 seconds for animation
+    }
+  }
+}
+
+// Helper function to style hints with bold orange text for key information
+// Helper function to style hints with bold orange text for key information
+function styleHint(hint) {
+  // Define patterns to highlight in bold orange
+  const patterns = [
+    // Continents
+    { regex: /(Africa|Europe|Asia|North America|South America|Oceania|Antarctica)/gi, 
+      replace: '<strong class="hint-key">$1</strong>' },
+    
+    // Regions (more comprehensive)
+    { regex: /(Northern Europe|Southern Europe|Western Europe|Eastern Europe|Central Europe|Northern Africa|Southern Africa|Eastern Africa|Western Africa|Central Africa|Eastern Asia|Southern Asia|South-Eastern Asia|Southeast Asia|Western Asia|Central Asia|Northern America|Central America|South America|Caribbean|Australia and New Zealand|Polynesia|Melanesia|Micronesia)/gi,
+      replace: '<strong class="hint-key">$1</strong>' },
+    
+    // Population phrases - "over X million/billion"
+    { regex: /(over|under|above|below|more than|less than|approximately|around)\s+(\d+(?:\.\d+)?)\s*(million|billion)/gi,
+      replace: '$1 <strong class="hint-key">$2 $3</strong>' },
+    
+    // Just numbers with million/billion
+    { regex: /(\d+(?:\.\d+)?)\s*(million|billion)/gi,
+      replace: '<strong class="hint-key">$1 $2</strong>' },
+    
+    // Currency codes (3 letter uppercase codes)
+    { regex: /\b([A-Z]{3})\b/g,
+      replace: '<strong class="hint-key">$1</strong>' },
+    
+    // Languages (expanded list)
+    { regex: /(English|Spanish|French|German|Portuguese|Arabic|Chinese|Mandarin|Cantonese|Hindi|Russian|Japanese|Korean|Italian|Dutch|Swedish|Norwegian|Danish|Finnish|Polish|Turkish|Greek|Hebrew|Swahili|Thai|Vietnamese|Indonesian|Malay|Tagalog|Bengali|Urdu|Persian|Farsi|Amharic|Somali|Zulu|Xhosa|Afrikaans|Czech|Romanian|Hungarian|Ukrainian|Serbian|Croatian|Bulgarian|Slovak|Slovenian|Lithuanian|Latvian|Estonian|Albanian|Macedonian|Bosnian|Icelandic|Maltese|Irish|Welsh|Scottish Gaelic|Basque|Catalan|Galician)/gi,
+      replace: '<strong class="hint-key">$1</strong>' },
+    
+    // Directional words
+    { regex: /(northern|southern|eastern|western|central|north|south|east|west)/gi,
+      replace: '<strong class="hint-key">$1</strong>' },
+    
+    // Country descriptors
+    { regex: /(landlocked|coastal|island|peninsula|archipelago)/gi,
+      replace: '<strong class="hint-key">$1</strong>' },
+  ];
+
+  let styledHint = hint;
+  
+  // Apply each pattern in order
+  patterns.forEach(pattern => {
+    styledHint = styledHint.replace(pattern.regex, pattern.replace);
+  });
+
+  return styledHint;
+}
+
+// Render guesses list
+function renderGuesses() {
+  const container = document.getElementById('guessesContainer');
+  const list = document.getElementById('guessesList');
+  
+  if (guesses.length > 0) {
+    list.classList.remove('hidden');
+  }
+
+  // Render in reverse order (latest guess first)
+  container.innerHTML = [...guesses].reverse().map((guess, idx) => {
+    const bgColor = guess.color === 'green' ? 'border-[#4ADE80] text-[#4ADE80] bg-transparent' :
+                 guess.color === 'yellow' ? 'border-[#FFE066] text-[#FFE066] bg-transparent' :
+                 'border-[#F87171] text-[#F87171] bg-transparent';
+
+    return `
+      <div class="p-4 rounded-lg border-2 ${bgColor}">
+        <div class="font-medium text-sm mb-2">${guess.country.name}</div>
+        <div class="grid grid-cols-2 gap-2 text-xs">
+          <div><span class="text-gray-500">Distance: </span><span class="font-normal">${guess.distance.toLocaleString()} km</span></div>
+          <div><span class="text-gray-500">Direction: </span>
+            <span class="font-normal">${guess.direction} ${getDirectionArrow(guess.direction)}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Update global hints separately
+  
+}
+
+// Start game
+function startGame() {
+  const today = new Date().toDateString();
+  // DEMO MODE: Force Singapore for today's demo
+  mysteryCountry = COUNTRIES_DATA.find(c => c.name === 'Singapore');
+  console.log("Today's mystery country:", mysteryCountry);
+  guesses = [];
+  gameState = 'playing';
+  markers.forEach(m => m.remove());
+  markers = [];
+
+  
+  document.getElementById('gameStatus').classList.add('hidden');
+  document.getElementById('searchContainer').classList.remove('hidden');
+  document.getElementById('guessesList').classList.add('hidden');
+  document.getElementById('guessLabel').textContent = '10 guesses left';
+  
+}
+
+// Search input event listeners
+const searchInput = document.getElementById('searchInput');
+const searchResults = document.getElementById('searchResults');
+
+searchInput.addEventListener('input', (e) => {
+  const term = e.target.value.toLowerCase();
+
+  // Hide dropdown if input empty
+  if (term.length === 0) {
+    searchResults.classList.add('hidden');
+    searchResults.innerHTML = '';
+    return;
+  }
+
+  // Filter countries (skip already guessed ones)
+  const filtered = COUNTRIES_DATA.filter(c =>
+    c.name.toLowerCase().includes(term) &&
+    !guesses.find(g => g.country.id === c.id)
+  ).slice(0, 8);
+
+  // If no matches, hide
+  if (filtered.length === 0) {
+    searchResults.classList.add('hidden');
+    searchResults.innerHTML = '';
+    return;
+  }
+
+  // Otherwise, show dropdown
+  const html = filtered.map(country => {
+    const escaped = JSON.stringify(country).replace(/"/g, '&quot;');
+    return `
+      <button
+  type="button"
+  class="w-full px-4 py-3 text-left hover:bg-indigo-50 flex items-center gap-2 border-b border-gray-100"
+  data-country="${escaped}"
+>
+
+        <span class='font-medium text-gray-100'>${country.name}</span>
+        <span class='text-sm text-gray-500 ml-auto'>${country.continent}</span>
+      </button>
+    `;
+  }).join('');
+
+  searchResults.innerHTML = html;
+  searchResults.classList.remove('hidden');
+});
+
+
+searchInput.addEventListener('focus', () => {
+  if (searchInput.value.length > 0) {
+    const event = new Event('input');
+    searchInput.dispatchEvent(event);
+  }
+});
+
+document.addEventListener('click', (e) => {
+  if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+    searchResults.classList.add('hidden');
+  }
+});
+
+// Handle country selection from dropdown
+searchResults.addEventListener('click', (e) => {
+  const button = e.target.closest('button[data-country]');
+  if (button) {
+    e.preventDefault();
+    e.stopPropagation();
+    const country = JSON.parse(button.dataset.country);
+    selectCountry(country);
+  }
+});
+
+
+function selectCountry(country) {
+  // Hide dropdown and clear input FIRST
+  const results = document.getElementById('searchResults');
+  const input = document.getElementById('searchInput');
+  
+  results.classList.add('hidden');
+  results.innerHTML = '';
+  input.value = '';
+  input.blur();
+  
+  // Then handle the guess
+  handleGuess(country);
+}
+
+
+// Initialize everything
+(function(){
+  const btn = document.getElementById('howBtn');
+  const modal = document.getElementById('howModal');
+  const closeBtn = document.getElementById('howCloseBtn');
+
+  function open(){
+    if(!modal) return;
+    modal.classList.remove('hidden');
+    modal.setAttribute('aria-hidden','false');
+    if(btn) btn.setAttribute('aria-expanded','true');
+    // prevent body scroll while modal is open
+    document.body.style.overflow = 'hidden';
+    // focus the close button
+    if(closeBtn) closeBtn.focus();
+  }
+
+  function close(){
+    if(!modal) return;
+    modal.classList.add('hidden');
+    modal.setAttribute('aria-hidden','true');
+    if(btn) btn.setAttribute('aria-expanded','false');
+    document.body.style.overflow = '';
+    if(btn) btn.focus();
+  }
+
+  if(btn){
+    btn.addEventListener('click', (e)=>{
+      open();
+    });
+  }
+
+  if(closeBtn){
+    closeBtn.addEventListener('click', (e)=>{
+      close();
+    });
+  }
+
+  // Close when clicking backdrop (modal element) but not when clicking the dialog
+  if(modal){
+    modal.addEventListener('click', (e)=>{
+      if(e.target === modal) close();
+    });
+  }
+
+  // Close on Escape
+  document.addEventListener('keydown', (e)=>{
+    if(e.key === 'Escape' && modal && !modal.classList.contains('hidden')){
+      close();
+    }
+  });
+})();
+
+// Stats modal functionality
+(function(){
+  const btn = document.getElementById('statsBtn');
+  const modal = document.getElementById('statsModal');
+  const closeBtn = document.getElementById('statsCloseBtn');
+
+  function open(){
+    if(!modal) return;
+    // Update stats from localStorage
+    const currentStreak = parseInt(localStorage.getItem('currentStreak') || '0');
+const bestStreak = parseInt(localStorage.getItem('bestStreak') || '0');
+const gamesPlayed = parseInt(localStorage.getItem('gamesPlayed') || '0');
+const gamesWon = parseInt(localStorage.getItem('gamesWon') || '0');
+const winPercent = gamesPlayed > 0 ? Math.round((gamesWon / gamesPlayed) * 100) : 0;
+
+document.getElementById('statsPlayed').textContent = gamesPlayed;
+document.getElementById('statsWinPercent').textContent = winPercent;
+document.getElementById('statsCurrentStreak').textContent = currentStreak;
+document.getElementById('statsBestStreak').textContent = bestStreak;
+
+    
+    modal.classList.remove('hidden');
+    modal.setAttribute('aria-hidden','false');
+    if(btn) btn.setAttribute('aria-expanded','true');
+    document.body.style.overflow = 'hidden';
+    if(closeBtn) closeBtn.focus();
+  }
+
+  function close(){
+    if(!modal) return;
+    modal.classList.add('hidden');
+    modal.setAttribute('aria-hidden','true');
+    if(btn) btn.setAttribute('aria-expanded','false');
+    document.body.style.overflow = '';
+    if(btn) btn.focus();
+  }
+
+  if(btn){
+    btn.addEventListener('click', (e)=>{
+      open();
+    });
+  }
+
+  if(closeBtn){
+    closeBtn.addEventListener('click', (e)=>{
+      close();
+    });
+  }
+
+  if(modal){
+    modal.addEventListener('click', (e)=>{
+      if(e.target === modal) close();
+    });
+  }
+
+  document.addEventListener('keydown', (e)=>{
+    if(e.key === 'Escape' && modal && !modal.classList.contains('hidden')){
+      close();
+    }
+  });
+})();
+
+
+// Reset stats functionality
+document.getElementById('resetStatsBtn').addEventListener('click', function() {
+  if (confirm('Are you sure you want to reset all statistics? This cannot be undone.')) {
+    localStorage.setItem('gamesPlayed', '0');
+    localStorage.setItem('gamesWon', '0');
+    localStorage.setItem('currentStreak', '0');
+    localStorage.setItem('bestStreak', '0');
+    
+    // Update the display
+    document.getElementById('statsPlayed').textContent = '0';
+    document.getElementById('statsWinPercent').textContent = '0';
+    document.getElementById('statsCurrentStreak').textContent = '0';
+    document.getElementById('statsBestStreak').textContent = '0';
+    
+    alert('Statistics have been reset!');
+  }
+});
+
+// Victory modal close functionality
+(function(){
+  const modal = document.getElementById('victoryModal');
+  const closeBtn = document.getElementById('victoryCloseBtn');
+
+  function close(){
+    if(!modal) return;
+    modal.classList.add('hidden');
+    modal.setAttribute('aria-hidden','true');
+    document.body.style.overflow = '';
+  }
+
+  if(closeBtn){
+    closeBtn.addEventListener('click', (e)=>{
+      close();
+    });
+  }
+
+  if(modal){
+    modal.addEventListener('click', (e)=>{
+      if(e.target === modal) close();
+    });
+  }
+
+  document.addEventListener('keydown', (e)=>{
+    if(e.key === 'Escape' && modal && !modal.classList.contains('hidden')){
+      close();
+    }
+  });
+})();
+
+// ⬇️⬇️⬇️ ADD LOSS MODAL CLOSE HANDLER HERE ⬇️⬇️⬇️
+// Loss modal close functionality
+(function(){
+  const modal = document.getElementById('lossModal');
+  const closeBtn = document.getElementById('lossCloseBtn');
+
+  function close(){
+    if(!modal) return;
+    modal.classList.add('hidden');
+    modal.setAttribute('aria-hidden','true');
+    document.body.style.overflow = '';
+  }
+
+  if(closeBtn){
+    closeBtn.addEventListener('click', (e)=>{
+      close();
+    });
+  }
+
+  if(modal){
+    modal.addEventListener('click', (e)=>{
+      if(e.target === modal) close();
+    });
+  }
+
+  document.addEventListener('keydown', (e)=>{
+    if(e.key === 'Escape' && modal && !modal.classList.contains('hidden')){
+      close();
+    }
+  });
+})();
+// ⬆️⬆️⬆️ END LOSS MODAL CLOSE HANDLER ⬆️⬆️⬆️
+
+getCountriesData();</script>
+
+</body>
+
+</html>
