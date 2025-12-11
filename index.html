@@ -35,8 +35,8 @@
     }
 
     #modeToggle:checked ~ .mode-toggle-dot {
-        transform: translateX(28px);
-    }
+    transform: translateX(20px);
+}
 
     .sr-only {
         position: absolute;
@@ -79,9 +79,9 @@
     position: relative;
     background: transparent !important;
     box-shadow: 
-        0 0 40px rgba(168, 85, 247, 0.15),
-        0 0 80px rgba(236, 72, 153, 0.1),
-        0 0 120px rgba(168, 85, 247, 0.05);
+        0 0 20px rgba(168, 85, 247, 0.08),
+        0 0 40px rgba(236, 72, 153, 0.05),
+        0 0 60px rgba(168, 85, 247, 0.03);
 }
         
         .mapboxgl-map {
@@ -400,6 +400,22 @@
   border: 2px solid #3a3a4a !important;
 }
 
+/* Slide-up animation for How to Play modal (same as Stats) */
+#howModal:not(.hidden) > div {
+  animation: slideUpScale 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes slideUpScale {
+  0% {
+    transform: translateY(60px) scale(0.92);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
 #howModal h3 {
   color: #ffffff !important;
 }
@@ -648,10 +664,14 @@ h1 {
   }
 }
 
-/* Victory Modal Animations */
+/* Victory Modal Animations - SMOOTH FADE */
 #victoryModal:not(.hidden) {
   display: flex !important;
-  animation: fadeIn 0.2s ease-out;
+  opacity: 1 !important;
+}
+
+#victoryModal.hidden {
+  opacity: 0 !important;
 }
 
 #victoryModal .bg-white {
@@ -665,19 +685,19 @@ h1 {
   animation: slideUpScale 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
-/* Make country images wider and TALLER */
+/* Make country images NARROWER and shorter */
 #victoryCountryImage,
 #lossCountryImage {
   width: 100% !important;
   max-width: 500px !important;
-  height: 300px !important;
+  height: 220px !important;
   object-fit: cover !important;
 }
 
-/* Adjust modal width for better proportions */
+/* Adjust modal width - NARROWER */
 #victoryModal .bg-white,
 #lossModal .bg-white {
-  max-width: 600px !important;
+  max-width: 550px !important;
 }
 
 @keyframes slideUpScale {
@@ -701,10 +721,14 @@ h1 {
   background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%) !important;
 }
 
-/* Loss Modal Animations - same as victory */
+/* Loss Modal Animations - SMOOTH FADE */
 #lossModal:not(.hidden) {
   display: flex !important;
-  animation: fadeIn 0.3s ease-out;
+  opacity: 1 !important;
+}
+
+#lossModal.hidden {
+  opacity: 0 !important;
 }
 
 #lossModal .bg-white {
@@ -788,36 +812,36 @@ h1 {
     font-size: 14px !important;
   }
   
-  /* Base map height */
+  /* Base map height - REDUCED */
 #map {
-  height: 500px !important;
-  min-height: 500px !important;
+  height: 480px !important;
+  min-height: 480px !important;
 }
 
 /* For 1920x1080 screens (Full HD) */
 @media (min-width: 1920px) and (min-height: 1080px) {
   #map {
-    height: 650px !important;
+    height: 620px !important;  /* Changed from 650px */
   }
 }
 
 /* For standard laptops (1366x768, 1440x900) */
 @media (min-width: 1366px) and (max-width: 1919px) {
   #map {
-    height: 550px !important;
+    height: 520px !important;  /* Changed from 550px */
   }
 }
 
 /* Adjust based on viewport height */
 @media (min-height: 900px) {
   #map {
-    height: 600px !important;
+    height: 570px !important;  /* Changed from 600px */
   }
 }
 
 @media (min-height: 1080px) {
   #map {
-    height: 700px !important;
+    height: 670px !important;  /* Changed from 700px */
   }
 }
   
@@ -1107,7 +1131,7 @@ h1 {
 
             <!-- Centered modal for How to Play (hidden by default) -->
             <div id="howModal" role="dialog" aria-modal="true" aria-hidden="true" tabindex="-1" class="hidden fixed inset-0 z-50 items-center justify-center bg-black bg-opacity-50 px-4">
-              <div class="bg-white rounded-lg shadow-xl max-w-lg w-full max-h-[80vh] overflow-auto p-6 relative">
+  <div class="bg-white rounded-lg shadow-xl max-w-lg w-full max-h-[80vh] overflow-auto p-6 relative transform scale-95 opacity-0 transition-all duration-300">
                 <button id="howCloseBtn" aria-label="Close How to Play" class="absolute top-3 right-3 text-gray-600 hover:text-gray-800 focus:outline-none">
                   <svg class="lucide-icon w-5 h-5" viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
@@ -1195,7 +1219,7 @@ h1 {
             </div>
 
             <!-- Victory Modal -->
-<div id="victoryModal" role="dialog" aria-modal="true" aria-hidden="true" tabindex="-1" class="hidden fixed inset-0 z-[6000] items-center justify-center bg-black bg-opacity-70 px-4">
+<div id="victoryModal" role="dialog" aria-modal="true" aria-hidden="true" tabindex="-1" class="hidden fixed inset-0 z-[6000] items-center justify-center px-4" style="background-color: rgba(0, 0, 0, 0.7); transition: opacity 0.3s ease;">
   <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8 relative transform scale-95 opacity-0 transition-all duration-500" id="victoryModalContent">
     <button id="victoryCloseBtn" aria-label="Close" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 focus:outline-none">
       <svg class="lucide-icon w-6 h-6" viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -1205,12 +1229,13 @@ h1 {
 <!-- Country Image & Icon -->
 <div class="text-center mb-4">
   <!-- Country Image - TALLER VERSION -->
-  <div class="mb-3">
+  <div class="mb-3 relative">
     <img id="victoryCountryImage" 
      src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Bratislava_Montage_2020.png/320px-Bratislava_Montage_2020.png" 
      alt="Country" 
      class="rounded-lg shadow-xl mx-auto"
      style="width: 100%; max-width: 500px; height: 300px; object-fit: cover; display: block;">
+    <span style="position: absolute; bottom: 4px; right: 26px; font-size: 8px; color: rgba(255,255,255,0.6); text-shadow: 0 0 3px rgba(0,0,0,0.8);">*Wikimedia Commons</span>
   </div>
   <h2 class="text-3xl font-bold mb-2" style="color: #f28f4c;" id="victoryCountryName">Singapore</h2>
   <p class="text-lg text-gray-300">You found it!</p>
@@ -1249,7 +1274,7 @@ h1 {
 </div>
 
 <!-- Loss Modal -->
-<div id="lossModal" role="dialog" aria-modal="true" aria-hidden="true" tabindex="-1" class="hidden fixed inset-0 z-[6000] items-center justify-center bg-black bg-opacity-70 px-4">
+<div id="lossModal" role="dialog" aria-modal="true" aria-hidden="true" tabindex="-1" class="hidden fixed inset-0 z-[6000] items-center justify-center px-4" style="background-color: rgba(0, 0, 0, 0.7); transition: opacity 0.3s ease;">
   <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8 relative transform scale-95 opacity-0 transition-all duration-500" id="lossModalContent">
     <button id="lossCloseBtn" aria-label="Close" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 focus:outline-none">
       <svg class="lucide-icon w-6 h-6" viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -1258,8 +1283,8 @@ h1 {
     <!-- Country Image & Icon -->
 <div class="text-center mb-4">
   <!-- Country Image - TALLER VERSION -->
-  <div class="mb-3">
-    <img id="lossCountryImage" 
+  <div class="mb-3 relative">
+    <img id="lossCountryImage"
      src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Bratislava_Montage_2020.png/320px-Bratislava_Montage_2020.png" 
      alt="Country" 
      class="rounded-lg shadow-xl mx-auto"
@@ -1317,15 +1342,15 @@ h1 {
     <div class="flex items-center justify-between mb-2">
     <!-- Mode Toggle Switch -->
     <div class="flex items-center gap-3">
-        <label class="flex items-center cursor-pointer">
-            <div class="relative">
-                <input type="checkbox" id="modeToggle" class="sr-only" />
-                <div class="mode-toggle-bg w-14 h-7 bg-gray-600 rounded-full shadow-inner"></div>
-                <div class="mode-toggle-dot absolute w-5 h-5 bg-white rounded-full shadow left-1 top-1 transition"></div>
-            </div>
-            <span class="ml-3 text-sm font-medium" style="color: #f28f4c;">Timer Mode</span>
-        </label>
-    </div>
+    <label class="flex items-center cursor-pointer">
+        <div class="relative">
+            <input type="checkbox" id="modeToggle" class="sr-only" />
+            <div class="mode-toggle-bg w-11 h-6 bg-gray-600 rounded-full shadow-inner"></div>
+            <div class="mode-toggle-dot absolute w-4 h-4 bg-white rounded-full shadow left-1 top-1 transition"></div>
+        </div>
+        <span class="ml-3 text-sm font-medium" style="color: #f28f4c;">Timer Mode</span>
+    </label>
+</div>
     
     <!-- Display Label -->
     <span id="gameLabel" style="color: #f28f4c; font-weight: 600; font-size: 0.875rem;">10 guesses left</span>
@@ -1371,7 +1396,7 @@ h1 {
                 
                 <!-- Make legend sticky -->
                 <p class="text-xs text-gray-400 mt-2 flex items-center gap-3 flex-wrap" 
-                   style="position: sticky; bottom: 0; background: linear-gradient(135deg, #1a1625 0%, #2d2640 50%, #1a1625 100%); padding: 0.5rem 0; z-index: 10;">
+   style="position: sticky; bottom: 0; background: linear-gradient(135deg, #221c32 0%, #2d2640 50%, #1a1625 100%); padding: 0.5rem 0 0.5rem 1.5rem; z-index: 10;">
                   <span class="flex items-center gap-1">
                     <span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#4ADE80;"></span> Correct
                   </span>
@@ -2353,10 +2378,11 @@ function handleGuess(country) {
 
   document.getElementById('searchInput').value = '';
   document.getElementById('searchResults').classList.add('hidden');
-  const guessesLeft = 10 - guesses.length;
   if (gameMode === 'guess') {
+    const guessesLeft = 10 - guesses.length;
     document.getElementById('gameLabel').textContent = guessesLeft === 1 ? '1 guess left' : `${guessesLeft} guesses left`;
 }
+// In timer mode, don't show guesses left - timer is shown instead
 
   if (country.id === mysteryCountry.id) {
     gameState = 'won';
@@ -2372,7 +2398,7 @@ function handleGuess(country) {
     localStorage.setItem('gamesPlayed', gamesPlayed);
     localStorage.setItem('gamesWon', gamesWon);
 
-  } else if (guesses.length >= 10) {
+  } else if (gameMode === 'guess' && guesses.length >= 10) {
     gameState = 'lost';
     localStorage.setItem('currentStreak', '0');
     showGameStatus('lost');
@@ -2836,29 +2862,39 @@ function renderGuesses() {
                  'border-[#F87171] text-[#F87171] bg-[#F87171]/10';
 
     return `
-      <div class="p-4 rounded-xl border-2 ${bgColor} transition-all hover:scale-[1.02] hover:shadow-lg">
-        <div class="font-semibold text-base mb-3 flex items-center gap-2">
-          <span class="material-icons text-lg">place</span>
-          <span>${guess.country.name}</span>
-        </div>
-        <div class="grid grid-cols-2 gap-3 text-sm">
-          <div class="flex items-center gap-2">
-            <span class="material-icons text-base opacity-70">straighten</span>
-            <div>
-              <span class="text-gray-400 text-xs block">Distance</span>
-              <span class="font-medium">${guess.distance.toLocaleString()} km</span>
-            </div>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="material-icons text-base opacity-70">explore</span>
-            <div>
-              <span class="text-gray-400 text-xs block">Direction</span>
-              <span class="font-medium">${guess.direction} ${getDirectionArrow(guess.direction)}</span>
-            </div>
-          </div>
+  <div class="p-4 rounded-xl border-2 ${bgColor} transition-all hover:scale-[1.02] hover:shadow-lg">
+    <div class="font-semibold text-base mb-3 flex items-center gap-2">
+      <span class="material-icons text-lg">place</span>
+      <span>${guess.country.name}</span>
+    </div>
+    <div class="grid grid-cols-2 gap-3 text-sm">
+      <div class="flex items-center gap-2">
+        <span class="material-icons text-base opacity-70">straighten</span>
+        <div>
+          <span class="text-gray-400 text-xs block">Distance</span>
+          <span class="font-medium">${guess.distance.toLocaleString()} km</span>
         </div>
       </div>
-    `;
+      ${guess.distance > 0 ? `
+      <div class="flex items-center gap-2">
+        <span class="material-icons text-base opacity-70">explore</span>
+        <div>
+          <span class="text-gray-400 text-xs block">Direction</span>
+          <span class="font-medium">${guess.direction} ${getDirectionArrow(guess.direction)}</span>
+        </div>
+      </div>
+      ` : `
+      <div class="flex items-center gap-2">
+        <span class="material-icons text-base opacity-70" style="color:#4ADE80;">check_circle</span>
+        <div>
+          <span class="text-gray-400 text-xs block">Result</span>
+          <span class="font-medium" style="color:#4ADE80;">Correct!</span>
+        </div>
+      </div>
+      `}
+    </div>
+  </div>
+`;
   }).join('');
 
   // Update global hints separately
@@ -2867,7 +2903,7 @@ function renderGuesses() {
 // Timer Mode Functions
 function startTimer() {
     clearInterval(timerInterval);
-    timerSeconds = 180; // Reset to 5 minutes
+    timerSeconds = 30; // 0.5 minute timer
     updateTimerDisplay();
     
     timerInterval = setInterval(() => {
