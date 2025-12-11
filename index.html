@@ -1071,6 +1071,111 @@ h1 {
   overflow-y: auto;
 }
 
+/* ============================================
+   WELCOME MODAL STYLING
+   ============================================ */
+#welcomeModal {
+  display: none;
+}
+
+#welcomeModal:not(.hidden) {
+  display: flex !important;
+}
+
+#welcomeModal .bg-white {
+  background-color: #2d2d3a !important;
+  color: #e6e6e6 !important;
+  border: 2px solid #f28f4c !important;
+}
+
+/* Welcome modal animation */
+#welcomeModal:not(.hidden) #welcomeModalContent {
+  animation: slideUpScale 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Mobile responsive */
+@media (max-width: 640px) {
+  #welcomeModal .bg-white {
+    padding: 1.5rem !important;
+    margin: 1rem !important;
+    max-width: 95vw !important;
+  }
+  
+  #welcomeModal img {
+    max-width: 220px !important;
+  }
+  
+  #welcomeModal h2 {
+    font-size: 1.5rem !important;
+  }
+  
+  #welcomeModal .space-y-4 {
+    max-height: 50vh;
+    overflow-y: auto;
+  }
+}
+
+/* ============================================
+   COMPASS RESPONSIVE SIZING
+   ============================================ */
+
+/* Compass default size - Desktop */
+#map > div > svg {
+  width: 60px;
+  height: 60px;
+}
+
+/* Extra Small Devices - Phones (up to 480px) */
+@media (max-width: 480px) {
+  #map > div > svg {
+    width: 45px !important;
+    height: 45px !important;
+  }
+  
+  /* Adjust position for small screens */
+  #map > div:first-child {
+    top: 12px !important;
+    left: 12px !important;
+  }
+}
+
+/* Small Devices - Tablets Portrait (481px to 768px) */
+@media (min-width: 481px) and (max-width: 768px) {
+  #map > div > svg {
+    width: 50px !important;
+    height: 50px !important;
+  }
+}
+
+/* Medium Devices - Tablets Landscape (769px to 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  #map > div > svg {
+    width: 55px !important;
+    height: 55px !important;
+  }
+}
+
+/* Large Devices - Desktops (1025px+) */
+@media (min-width: 1025px) {
+  #map > div > svg {
+    width: 60px !important;
+    height: 60px !important;
+  }
+}
+
+/* Very narrow screens (Galaxy Fold, etc.) */
+@media (max-width: 360px) {
+  #map > div > svg {
+    width: 40px !important;
+    height: 40px !important;
+  }
+  
+  #map > div:first-child {
+    top: 10px !important;
+    left: 10px !important;
+  }
+}
+
 /* Make guess cards more compact */
 #guessesContainer > div {
   padding: 0.75rem !important;
@@ -1327,7 +1432,78 @@ h1 {
 </div>
 </div>
 <!-- ========== END LOSS MODAL ========== -->
-
+<!-- Welcome Modal - Shows on First Visit -->
+<div id="welcomeModal" class="hidden fixed inset-0 z-[9999] items-center justify-center px-4" style="background-color: rgba(0, 0, 0, 0.85);">
+  <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-8 relative transform scale-95 opacity-0 transition-all duration-500" id="welcomeModalContent" style="border: none !important;">
+    <button id="welcomeCloseBtn" aria-label="Close" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 focus:outline-none">
+      <svg class="lucide-icon w-6 h-6" viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    </button>
+    
+    <!-- Logo at top - BIGGER -->
+    <div class="text-center mb-6">
+      <img src="logo.svg" alt="Where in The World" style="max-width: 280px; margin: 0 auto; height: auto;">
+    </div>
+    
+    <!-- How to Play Instructions - TALLER SPACING -->
+    <div class="space-y-4 mb-6">
+      <div class="flex items-start gap-3 p-3 bg-white/5 rounded-lg">
+        <span class="material-icons text-xl flex-shrink-0" style="color:#f28f4c">public</span>
+        <div>
+          <h3 class="font-bold text-gray-200 text-sm mb-1">Guess the Mystery Country</h3>
+          <p class="text-xs text-gray-300">Each day, a new country is selected. Find it using clues!</p>
+        </div>
+      </div>
+      
+      <div class="flex items-start gap-3 p-3 bg-white/5 rounded-lg">
+        <span class="material-icons text-xl flex-shrink-0" style="color:#f28f4c">explore</span>
+        <div>
+          <h3 class="font-bold text-gray-200 text-sm mb-1">Follow the Clues</h3>
+          <p class="text-xs text-gray-300">Each guess shows <strong>distance</strong> and <strong>direction</strong>. Colored markers guide you:</p>
+          <div class="flex gap-3 mt-2 text-xs">
+            <span class="flex items-center gap-1">
+              <span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#4ADE80;"></span> Correct
+            </span>
+            <span class="flex items-center gap-1">
+              <span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#FFE066;"></span> Close
+            </span>
+            <span class="flex items-center gap-1">
+              <span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#F87171;"></span> Far
+            </span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="flex items-start gap-3 p-3 bg-white/5 rounded-lg">
+        <span class="material-icons text-xl flex-shrink-0" style="color:#f28f4c">lightbulb</span>
+        <div>
+          <h3 class="font-bold text-gray-200 text-sm mb-1">Unlock Hints</h3>
+          <p class="text-xs text-gray-300">New hints appear as you play, revealing continent, region, and more!</p>
+        </div>
+      </div>
+      
+      <div class="flex items-start gap-3 p-3 bg-white/5 rounded-lg">
+        <span class="material-icons text-xl flex-shrink-0" style="color:#f28f4c">favorite</span>
+        <div>
+          <h3 class="font-bold text-gray-200 text-sm mb-1">10 Guesses to Win</h3>
+          <p class="text-xs text-gray-300">You have 10 attempts. Use them wisely!</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Start Button -->
+    <button id="startGameBtn" class="w-full py-3 px-6 rounded-lg font-bold text-base transition-all hover:scale-105" style="background: linear-gradient(135deg, #f28f4c 0%, #d97a3a 100%); color: white; box-shadow: 0 4px 15px rgba(242, 143, 76, 0.4);">
+      Start Playing!
+    </button>
+    
+    <!-- Don't show again option -->
+    <div class="mt-4 text-center">
+      <label class="flex items-center justify-center gap-2 cursor-pointer text-xs text-gray-400 hover:text-gray-300">
+        <input type="checkbox" id="dontShowAgain" class="rounded" style="accent-color: #f28f4c;">
+        <span>Don't show this again</span>
+      </label>
+    </div>
+  </div>
+</div>
                 <div class="grid lg:grid-cols-2 gap-1 items-stretch">
             <!-- Left Column - Game -->
 <div class="flex flex-col">
@@ -1391,8 +1567,17 @@ h1 {
             </div>
 
             <!-- Right Column - Map -->
-            <div class="flex flex-col h-full px-4 sm:px-6">
-                <div id="map" class="w-full flex-1 rounded-lg" style="min-height: 600px;"></div>
+<div class="flex flex-col h-full px-4 sm:px-6">
+    
+    
+    <div id="map" class="w-full flex-1 rounded-lg" style="min-height: 600px; position: relative;">
+    
+    <!-- Compass Rose - Top Left -->
+<div style="position: absolute; top: 16px; left: 16px; z-index: 1000;">
+    <img src="compass.svg" alt="Compass" style="width: 60px; height: 60px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+</div>
+</div>
+    
                 
                 <!-- Make legend sticky -->
                 <p class="text-xs text-gray-400 mt-2 flex items-center gap-3 flex-wrap" 
@@ -1888,28 +2073,44 @@ async function getCountriesData() {
         continue;
       }
       
-      const countryName = parts[countryIdx]?.trim();
-      if (!countryName || countryName === 'Continent' || countryName === 'Unknown') continue;
+      let countryName = parts[countryIdx]?.trim();
+if (!countryName || countryName === 'Continent' || countryName === 'Unknown') continue;
+
+// Handle country name variations
+const nameMapping = {
+  'Taiwan': 'Taiwan',
+  'Taiwan, Province of China': 'Taiwan',
+  'Democratic Republic of the Congo': 'Congo',
+  'Republic of the Congo': 'Congo',
+  'Congo, Democratic Republic of the': 'Congo',
+  'Korea, Democratic People\'s Republic of': 'North Korea',
+  'Korea, Republic of': 'South Korea',
+  'Côte d\'Ivoire': 'Ivory Coast',
+  'Cote d\'Ivoire': 'Ivory Coast'
+};
+
+if (nameMapping[countryName]) {
+  countryName = nameMapping[countryName];
+}
       
-      // Get coordinates - they should be numeric values near the end
-      let latStr = null;
-      let lonStr = null;
-      
-      // Try to find lat/lon - they should be the last two numeric values
-      for (let j = parts.length - 1; j >= 0; j--) {
-        const val = parts[j]?.trim();
-        if (!val) continue;
-        
-        const num = parseFloat(val);
-        if (!isNaN(num) && num >= -180 && num <= 180) {
-          if (lonStr === null) {
-            lonStr = val;
-          } else if (latStr === null) {
-            latStr = val;
-            break;
-          }
-        }
-      }
+      // Get coordinates - they should be the LAST TWO columns in data rows
+let latStr = parts[parts.length - 2]?.trim(); // Second to last
+let lonStr = parts[parts.length - 1]?.trim(); // Last
+
+// Validate coordinates
+if (latStr && lonStr) {
+  const lat = parseFloat(latStr);
+  const lon = parseFloat(lonStr);
+  
+  // Check if valid coordinates
+  if (isNaN(lat) || isNaN(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) {
+    console.warn(`Invalid coordinates for ${parts[countryIdx]}: lat=${latStr}, lon=${lonStr}`);
+    continue;
+  }
+} else {
+  console.warn(`Missing coordinates for ${parts[countryIdx]}`);
+  continue;
+}
       
       // Fallback to indexed approach
       if (!latStr && latIdx >= 0 && parts[latIdx]) latStr = parts[latIdx].trim();
@@ -2047,15 +2248,26 @@ async function getCountriesData() {
           region: getRegion(lat, lon),
           borders: 0
         });
+        // Debug: Log every 50th country
+if (COUNTRIES_DATA.length % 50 === 0) {
+  console.log(`Loaded ${COUNTRIES_DATA.length} countries so far...`);
+}
     }
     
     console.log(`✓ Loaded ${COUNTRIES_DATA.length} countries from CSV file`);
-    console.log("First 3 countries:", COUNTRIES_DATA.slice(0, 3));
-    
-    if (COUNTRIES_DATA.length === 0) {
-      alert('No countries loaded from CSV file! Please check the file format.');
-      return;
-    }
+console.log("First 3 countries:", COUNTRIES_DATA.slice(0, 3));
+console.log("Last 3 countries:", COUNTRIES_DATA.slice(-3));
+
+// Check for specific countries
+const checkCountries = ['Taiwan', 'Palestine', 'Kosovo', 'Vatican City', 'Hong Kong', 'Macau'];
+checkCountries.forEach(name => {
+  const found = COUNTRIES_DATA.find(c => c.name.toLowerCase().includes(name.toLowerCase()));
+  if (found) {
+    console.log(`✓ Found ${name}:`, found);
+  } else {
+    console.warn(`✗ Missing ${name}`);
+  }
+});
     
     // Filter valid mystery countries
     VALID_MYSTERY_COUNTRIES = COUNTRIES_DATA.filter(c =>
@@ -2092,6 +2304,81 @@ if (gameMode === 'timer') {
 
 
 getCountriesData();
+
+// ============================================
+// WELCOME MODAL - SHOWS ON FIRST VISIT
+// ============================================
+(function() {
+  const welcomeModal = document.getElementById('welcomeModal');
+  const startBtn = document.getElementById('startGameBtn');
+  const closeBtn = document.getElementById('welcomeCloseBtn');
+  const dontShowCheckbox = document.getElementById('dontShowAgain');
+  
+  function showWelcomeModal() {
+    if (!welcomeModal) return;
+    welcomeModal.classList.remove('hidden');
+    welcomeModal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    
+    // Trigger animation
+    setTimeout(() => {
+      const content = document.getElementById('welcomeModalContent');
+      if (content) {
+        content.style.opacity = '1';
+        content.style.transform = 'scale(1)';
+      }
+    }, 50);
+  }
+  
+  function hideWelcomeModal() {
+    if (!welcomeModal) return;
+    
+    // Check if user clicked "Don't show again"
+    if (dontShowCheckbox && dontShowCheckbox.checked) {
+      localStorage.setItem('welcomeModalShown', 'true');
+    }
+    
+    welcomeModal.classList.add('hidden');
+    welcomeModal.style.display = 'none';
+    document.body.style.overflow = '';
+  }
+  
+  // Check if modal has been shown before
+  const hasSeenWelcome = localStorage.getItem('welcomeModalShown');
+  
+  // Show modal on first visit (after a short delay)
+  if (!hasSeenWelcome) {
+    setTimeout(() => {
+      showWelcomeModal();
+    }, 500); // 0.5 second delay after page loads
+  }
+  
+  // Close button
+  if (closeBtn) {
+    closeBtn.addEventListener('click', hideWelcomeModal);
+  }
+  
+  // Start button
+  if (startBtn) {
+    startBtn.addEventListener('click', hideWelcomeModal);
+  }
+  
+  // Close on clicking backdrop
+  if (welcomeModal) {
+    welcomeModal.addEventListener('click', (e) => {
+      if (e.target === welcomeModal) {
+        hideWelcomeModal();
+      }
+    });
+  }
+  
+  // Close on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && welcomeModal && !welcomeModal.classList.contains('hidden')) {
+      hideWelcomeModal();
+    }
+  });
+})();
 
 // Parse CSV line handling quoted fields with commas
 function parseCSVLine(line) {
@@ -2242,15 +2529,17 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 
 // Calculate direction between two points
 function calculateDirection(lat1, lon1, lat2, lon2) {
-  // Simple planar direction for flat map (not wrapping)
   const dLat = lat2 - lat1;
   const dLon = lon2 - lon1;
   
   // Calculate bearing in degrees (0 = North, 90 = East, etc.)
   const bearing = (Math.atan2(dLon, dLat) * 180 / Math.PI + 360) % 360;
   
+  // 8 directions with proper ranges
   const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
   const index = Math.round(bearing / 45) % 8;
+  
+  console.log(`Direction calculation: bearing=${bearing.toFixed(1)}°, direction=${directions[index]}`);
   return directions[index];
 }
 
@@ -2723,22 +3012,19 @@ function showLossPopup() {
   document.body.style.overflow = 'hidden';
 }
 
-// Convert direction letters (N, NE, etc.) to arrow emojis
-function getDirectionArrow(dir) {
-  const arrows = {
-    N: "⬆️",
-    NE: "↗️",
-    E: "➡️",
-    SE: "↘️",
-    S: "⬇️",
-    SW: "↙️",
-    W: "⬅️",
-    NW: "↖️"
+// Convert direction to full word
+function getDirectionText(dir) {
+  const directions = {
+    N: "N",
+    NE: "NE",
+    E: "E",
+    SE: "SE",
+    S: "S",
+    SW: "SW",
+    W: "W",
+    NW: "NW"
   };
-  // Return arrow with neutral light-gray color
-  return arrows[dir]
-    ? `<span style="color:#e6e6e6; font-size:1.1em;">${arrows[dir]}</span>`
-    : "";
+  return directions[dir] || dir;
 }
 
 // Render guesses list
@@ -2876,13 +3162,13 @@ function renderGuesses() {
         </div>
       </div>
       ${guess.distance > 0 ? `
-      <div class="flex items-center gap-2">
-        <span class="material-icons text-base opacity-70">explore</span>
-        <div>
-          <span class="text-gray-400 text-xs block">Direction</span>
-          <span class="font-medium">${guess.direction} ${getDirectionArrow(guess.direction)}</span>
-        </div>
-      </div>
+<div class="flex items-center gap-2">
+  <span class="material-icons text-base opacity-70">explore</span>
+  <div>
+    <span class="text-gray-400 text-xs block">Direction</span>
+    <span class="font-medium">${getDirectionText(guess.direction)}</span>
+  </div>
+</div>
       ` : `
       <div class="flex items-center gap-2">
         <span class="material-icons text-base opacity-70" style="color:#4ADE80;">check_circle</span>
