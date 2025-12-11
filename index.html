@@ -1,0 +1,3419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Where in The World - Country Guessing Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css" rel="stylesheet">
+<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js"></script>
+    <!-- Landmarks data (optional - will work without it) -->
+    <script src="landmarks-data.js" defer></script>
+    <!-- Country fun facts -->
+<script src="country-facts.js" defer></script>
+<!-- Country hints data -->
+<script src="country-hints.js" defer></script>
+    <!-- Chakra Petch font for title -->
+<link href="https://fonts.googleapis.com/css2?family=Funnel+Display:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+
+
+    <style>
+    /* Toggle Switch Styles */
+    #modeToggle:checked ~ .mode-toggle-bg {
+        background-color: #f28f4c;
+    }
+
+    #modeToggle:checked ~ .mode-toggle-dot {
+        transform: translateX(28px);
+    }
+
+    .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border-width: 0;
+    }
+
+    .lucide-icon {
+            width: 24px;
+            height: 24px;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+        }
+        
+        /* Modern UI enhancements - Refined Design */
+        .bg-white {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .bg-white:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3) !important;
+            border-color: rgba(242, 143, 76, 0.2);
+        }
+        
+        #map {
+    transition: all 0.1s ease;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    background: transparent !important;
+    box-shadow: 
+        0 0 40px rgba(168, 85, 247, 0.15),
+        0 0 80px rgba(236, 72, 153, 0.1),
+        0 0 120px rgba(168, 85, 247, 0.05);
+}
+        
+        .mapboxgl-map {
+            background: transparent !important;
+        }
+        
+        /* Smooth animations for modals */
+        #victoryModalContent, #lossModalContent {
+            animation: modalSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.92) translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+        
+        /* Image loading state */
+        img[id$="LandmarkImage"] {
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+        
+        img[id$="LandmarkImage"]:not([src=""]) {
+            opacity: 1;
+        }
+        
+        img[id$="LandmarkImage"]:hover {
+            transform: scale(1.05);
+        }
+        
+        /* Modern card styling */
+        .rounded-xl {
+            border-radius: 1rem;
+        }
+        
+        /* Better input focus - refined */
+        #searchInput {
+            transition: all 0.2s ease;
+        }
+        
+        #searchInput:focus {
+            border-color: #f28f4c !important;
+            box-shadow: 0 0 0 4px rgba(242, 143, 76, 0.15);
+            transform: translateY(-1px);
+        }
+        
+        /* Refined button styles */
+        button {
+            transition: all 0.2s ease;
+        }
+        
+        button:hover {
+            transform: translateY(-1px);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        /* Better spacing and typography */
+        h1, h2, h3 {
+            letter-spacing: -0.02em;
+        }
+        
+        /* Improved card shadows */
+        .shadow-lg {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Refined guess cards */
+#guessesContainer > div {
+    transition: all 0.2s ease;
+    position: relative;
+    z-index: 1;
+}
+
+#guessesContainer > div:hover {
+    transform: translateX(4px);
+}
+        
+        /* Better modal backdrop */
+        #victoryModal, #lossModal {
+            backdrop-filter: blur(8px);
+        }
+        
+        /* Improved stat cards */
+        .bg-white\/50 {
+            backdrop-filter: blur(10px);
+        }
+        
+        /* Refined search dropdown */
+#searchResults {
+    backdrop-filter: none !important;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 10000 !important;
+    position: absolute !important;
+}
+        
+        /* Better map legend */
+        .text-xs {
+            font-weight: 500;
+        }
+        
+        /* Smooth scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(242, 143, 76, 0.5);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(242, 143, 76, 0.7);
+        }
+    /* Dark theme overrides */
+    body {
+  background: linear-gradient(135deg, #1a1625 0%, #201221 50%, #1a1625 100%) !important;
+  background-attachment: fixed !important;
+  color: #e6e6e6 !important;
+}
+    /* Make card backgrounds dark instead of white */
+    .bg-white {
+      background-color: #232026 !important;
+      color: #e6e6e6 !important;
+    }
+    /* Make light indigo button background subtly visible */
+    .bg-indigo-50 {
+      background-color: #2b2540 !important;
+      color: #e6e6ff !important;
+    }
+    /* Grey text shades adjusted for dark background */
+    .text-gray-800, .text-gray-700, .text-gray-600 { color: #e6e6e6 !important; }
+    .text-gray-500 { color: #cfc9d6 !important; }
+    .text-gray-400 { color: #a8a0b0 !important; }
+    .text-xs, .text-sm { color: inherit !important; }
+    /* Borders and map card adjustments */
+    .border-gray-200 { border-color: #3a3440 !important; }
+    /* Adjust small muted texts inside cards */
+    .text-green-700 { color: #86efac !important; }
+    .text-red-700 { color: #fca5a5 !important; }
+      /* Fix: make text readable in light-colored guess boxes */
+  .bg-red-50, .bg-yellow-50, .bg-green-50 {
+    color: #000 !important; /* black text */
+  }
+
+  /* Secondary text inside those boxes (Distance, Direction, etc.) */
+  .bg-red-50 .text-gray-600,
+  .bg-yellow-50 .text-gray-600,
+  .bg-green-50 .text-gray-600 {
+    color: #333 !important; /* dark gray */
+  }
+    /* Fix: dropdown text + hover colors for dark mode */
+/* Solid dropdown styling - no transparency */
+#searchResults {
+  background-color: #232026 !important;
+  color: #e6e6e6 !important;
+  backdrop-filter: none !important;
+  z-index: 10000 !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8) !important;
+}
+
+.country-search-btn {
+  background-color: #232026 !important;
+  transition: background-color 0.2s ease;
+}
+
+.country-search-btn:hover {
+  background-color: #3a3440 !important;
+  color: #ffffff !important;
+}
+
+.country-search-btn:hover span {
+  color: #ffffff !important;
+}
+
+  /* Optional – placeholder text color */
+ /* Make input text visible */
+#searchInput {
+  color: #1a1625 !important; /* dark text color */
+  background-color: #ffffff !important; /* white background */
+}
+
+#searchInput::placeholder {
+  color: #999 !important; /* lighter gray placeholder */
+}
+
+/* Focus state – orange border to match theme */
+#searchInput:focus {
+  border-color: #f28f4c !important; /* orange border */
+  color: #1a1625 !important; /* ensure text stays dark */
+}
+    /* Fix: result boxes (win/loss) colors for dark theme */
+  .bg-green-100 {
+    background-color: #1a2e1a !important; /* deep green background */
+    color: #d1fae5 !important;            /* light mint text */
+    border-color: #22c55e !important;     /* bright green border */
+  }
+
+  .bg-red-100 {
+    background-color: #2e1a1a !important; /* deep red background */
+    color: #fecaca !important;            /* soft pink text */
+    border-color: #ef4444 !important;     /* red border */
+  }
+
+  /* Adjust titles inside those boxes */
+  .bg-green-100 h2,
+  .bg-red-100 h2 {
+    color: #fff !important; /* white heading text */
+  }
+
+  /* Make details (capital, population, etc.) readable */
+  .bg-green-100 .text-gray-600,
+  .bg-red-100 .text-gray-600 {
+    color: #d4d4d4 !important;
+  }
+  /* Center the How to Play modal and dim the background properly */
+#howModal {
+  display: none; /* default hidden */
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.7); /* dark backdrop */
+}
+/* Center and layer the Statistics modal above the map */
+#statsModal {
+  display: none; /* hidden by default */
+  position: fixed;
+  inset: 0;
+  z-index: 5000; /* higher than Mapbox map tiles */
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+/* Show modal when not hidden */
+#statsModal:not(.hidden) {
+  display: flex !important;
+}
+
+/* Dark theme modal card */
+#statsModal .bg-white {
+  background-color: #2d2d3a !important;
+  color: #e6e6e6 !important;
+  border: 2px solid #3a3a4a !important;
+}
+
+/* Add blurred dark overlay behind it */
+#statsModal::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(2px);
+  z-index: 4999; /* below modal content */
+}
+
+/* Keep modal content above everything */
+#statsModal > div {
+  position: relative;
+  z-index: 5001;
+}
+
+
+/* When shown, use flex to center it */
+#statsModal:not(.hidden) {
+  display: flex !important;
+}
+
+/* Match dark theme styling for modal content */
+#statsModal .bg-white {
+  background-color: #2d2d3a !important;
+  color: #e6e6e6 !important;
+  border: 2px solid #3a3a4a !important;
+}
+
+/* Optional: add blur and layering like How to Play */
+#statsModal::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(2px);
+  z-index: 4999;
+}
+
+#statsModal > div {
+  position: relative;
+  z-index: 5001;
+}
+
+
+/* When modal is shown (JS removes .hidden), use flexbox to center */
+#howModal:not(.hidden) {
+  display: flex !important;
+}
+
+/* Modal content styling for dark theme */
+#howModal .bg-white {
+  background-color: #2d2d3a !important;
+  color: #e6e6e6 !important;
+  border: 2px solid #3a3a4a !important;
+}
+
+#howModal h3 {
+  color: #ffffff !important;
+}
+
+/* Allow hints to wrap properly after animation */
+#globalHints li {
+  white-space: normal !important;
+  word-wrap: break-word;
+}
+
+#globalHints .hint-item {
+  white-space: nowrap;
+  display: inline-block;
+}
+
+#howModal li {
+  color: #e0e0e0 !important;
+}
+
+#howCloseBtn {
+  color: #ccc !important;
+}
+
+#howCloseBtn:hover {
+  color: #fff !important;
+}
+  /* Ensure the How to Play modal always stays above the map */
+  #howModal {
+    z-index: 5000 !important; /* higher than Mapbox map tiles */
+  }
+
+  /* Also raise its background overlay if needed */
+  #howModal::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(2px); /* optional frosted blur effect */
+    z-index: 4999;
+  }
+
+  /* Make sure the modal content stays above the overlay */
+  #howModal > div {
+    position: relative;
+    z-index: 5001;
+  }
+  /* Body font */
+body {
+  font-family: 'Funnel Display', sans-serif;
+}
+  /* Title styling - using SVG logo now, but keeping for any other h1 elements */
+h1 {
+  font-family: 'Funnel Display', sans-serif;
+  color: #3cded9;
+  font-weight: 700;
+}
+
+/* Typewriter animation for hints */
+@keyframes typewriter {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@keyframes blink {
+  50% { border-color: transparent; }
+}
+
+.hint-item {
+  overflow: hidden;
+  white-space: nowrap;
+  animation: typewriter 3s steps(60) forwards;
+  display: inline-block;
+  max-width: 100%;
+}
+
+.hint-item.typing {
+  border-right: 2px solid #f28f4c;
+  animation: typewriter 3s steps(60) forwards, blink 1.5s step-end infinite;
+}
+
+.hint-key {
+  color: #f28f4c !important;
+  font-weight: 600;
+}
+
+/* Fade in animation for hint container */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hint-container {
+  animation: fadeInUp 0.8s ease-out forwards;
+}
+
+
+/* Logo Responsive Styles - FIXED VERSION */
+#mainLogo {
+    width: 100%;
+    max-width: 350px;  /* Changed from 450px */
+    height: auto;
+    display: block;
+    margin-top: 1rem;  /* ADD THIS LINE - adds top padding */
+}
+
+/* Phone - Portrait */
+@media (max-width: 480px) {
+    #mainLogo {
+        max-width: 200px !important;  /* Changed from 280px */
+        margin-top: 0.75rem !important;  /* ADD THIS LINE */
+    }
+}
+
+/* Phone - Landscape / Small Tablet */
+@media (min-width: 481px) and (max-width: 640px) {
+    #mainLogo {
+        max-width: 240px !important;  /* Changed from 320px */
+        margin-top: 0.75rem !important;  /* ADD THIS LINE */
+    }
+}
+
+/* Tablet - Portrait */
+@media (min-width: 641px) and (max-width: 768px) {
+    #mainLogo {
+        max-width: 280px !important;  /* Changed from 360px */
+        margin-top: 0.875rem !important;  /* ADD THIS LINE */
+    }
+}
+
+/* Tablet - Landscape / Small Laptop */
+@media (min-width: 769px) and (max-width: 1024px) {
+    #mainLogo {
+        max-width: 320px !important;  /* Changed from 400px */
+        margin-top: 1rem !important;  /* ADD THIS LINE */
+    }
+}
+
+/* Laptop */
+@media (min-width: 1025px) and (max-width: 1366px) {
+    #mainLogo {
+        max-width: 350px !important;  /* Changed from 450px */
+        margin-top: 1rem !important;  /* ADD THIS LINE */
+    }
+}
+
+/* Desktop */
+@media (min-width: 1367px) and (max-width: 1920px) {
+    #mainLogo {
+        max-width: 400px !important;  /* Changed from 500px */
+        margin-top: 1.25rem !important;  /* ADD THIS LINE */
+    }
+}
+
+/* Large Desktop */
+@media (min-width: 1921px) {
+    #mainLogo {
+        max-width: 450px !important;  /* Changed from 550px */
+        margin-top: 1.5rem !important;  /* ADD THIS LINE */
+    }
+}
+  
+  body {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+}
+
+/* Small devices (tablets portrait, 481px to 640px) */
+@media (min-width: 481px) and (max-width: 640px) {
+  img[alt="Where in The World"] {
+    max-width: 300px;
+  }
+}
+
+/* Medium devices (tablets landscape, 641px to 768px) */
+@media (min-width: 641px) and (max-width: 768px) {
+  img[alt="Where in The World"] {
+    max-width: 350px;
+  }
+}
+
+/* Large devices (small laptops, 769px to 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  img[alt="Where in The World"] {
+    max-width: 400px;
+  }
+}
+
+/* XL devices (desktops, 1025px to 1366px) - your laptop */
+@media (min-width: 1025px) and (max-width: 1366px) {
+  img[alt="Where in The World"] {
+    max-width: 450px;
+  }
+}
+
+/* 2XL devices (large desktops, 1367px to 1920px) - Full HD */
+@media (min-width: 1367px) and (max-width: 1920px) {
+  img[alt="Where in The World"] {
+    max-width: 500px;
+  }
+}
+
+/* 3XL devices (ultra-wide monitors, 1921px+) - 2K, 4K, Ultrawide */
+@media (min-width: 1921px) {
+  img[alt="Where in The World"] {
+    max-width: 550px;
+  }
+}
+
+/* Special handling for very tall screens (increase vertical spacing) */
+@media (min-height: 900px) {
+  .max-w-7xl {
+    padding-top: 2rem !important;
+  }
+}
+
+/* Special handling for ultrawide aspect ratios (21:9, 32:9) */
+@media (min-aspect-ratio: 21/9) {
+  img[alt="Where in The World"] {
+    max-width: 600px !important;
+  }
+}
+
+/* Responsive map heights */
+@media (max-width: 640px) {
+  #map {
+    height: 250px !important;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  #map {
+    height: 320px !important;
+  }
+}
+
+@media (min-width: 1921px) {
+  #map {
+    height: 500px !important;
+  }
+}
+
+/* Victory Modal Animations */
+#victoryModal:not(.hidden) {
+  display: flex !important;
+  animation: fadeIn 0.2s ease-out;
+}
+
+#victoryModal .bg-white {
+  background-color: #2d2d3a !important;
+  color: #e6e6e6 !important;
+  border: 2px solid #3a3a4a !important;
+}
+
+/* Slide-up animation for victory modal */
+#victoryModal:not(.hidden) #victoryModalContent {
+  animation: slideUpScale 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Make country images wider and TALLER */
+#victoryCountryImage,
+#lossCountryImage {
+  width: 100% !important;
+  max-width: 500px !important;
+  height: 300px !important;
+  object-fit: cover !important;
+}
+
+/* Adjust modal width for better proportions */
+#victoryModal .bg-white,
+#lossModal .bg-white {
+  max-width: 600px !important;
+}
+
+@keyframes slideUpScale {
+  0% {
+    transform: translateY(60px) scale(0.92);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Fun fact box gradient for dark theme */
+#victoryModal .bg-gradient-to-br {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%) !important;
+}
+
+/* Loss Modal Animations - same as victory */
+#lossModal:not(.hidden) {
+  display: flex !important;
+  animation: fadeIn 0.3s ease-out;
+}
+
+#lossModal .bg-white {
+  background-color: #2d2d3a !important;
+  color: #e6e6e6 !important;
+  border: 2px solid #3a3a4a !important;
+}
+
+#lossModal:not(.hidden) #lossModalContent {
+  animation: slideUpScale 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+#lossModal .bg-gradient-to-br {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%) !important;
+}
+
+/* Stats Modal Animation */
+#statsModal:not(.hidden) {
+  display: flex !important;
+  animation: fadeIn 0.3s ease-out;
+}
+
+#statsModal:not(.hidden) #statsModalContent {
+  animation: slideUpScale 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+/* Drop shadow for map markers */
+.map-marker-shadow {
+  filter: drop-shadow(0 0 8px rgba(82, 82, 82, 0.8)) 
+          drop-shadow(0 0 3px rgba(255, 255, 255, 0.6));
+}
+
+/* ============================================
+   COMPREHENSIVE RESPONSIVE DESIGN
+   ============================================ */
+
+/* Extra Small Devices - Phones (up to 480px) */
+@media (max-width: 480px) {
+  /* Reduce body padding */
+  body {
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+    padding-top: 0.5rem !important;
+  }
+  
+  /* Logo */
+  img[alt="Where in The World"] {
+    max-width: 220px !important;
+    margin: 0 auto !important;
+  }
+  
+  /* Header buttons */
+  button[aria-label="Statistics"],
+  button[aria-label="How to play"] {
+    width: 2.25rem !important;
+    height: 2.25rem !important;
+  }
+  
+  button[aria-label="Statistics"] span,
+  button[aria-label="How to play"] span {
+    font-size: 1.125rem !important;
+  }
+  
+  /* Search container */
+  #searchContainer {
+    padding: 0.75rem !important;
+  }
+  
+  #searchInput {
+    font-size: 14px !important;
+    padding: 0.65rem 0.75rem !important;
+  }
+  
+  /* Dropdown */
+  #searchResults {
+    max-height: 200px !important;
+    font-size: 14px !important;
+  }
+  
+  #searchResults button {
+    padding: 0.65rem 0.75rem !important;
+    font-size: 14px !important;
+  }
+  
+  /* Base map height */
+#map {
+  height: 500px !important;
+  min-height: 500px !important;
+}
+
+/* For 1920x1080 screens (Full HD) */
+@media (min-width: 1920px) and (min-height: 1080px) {
+  #map {
+    height: 650px !important;
+  }
+}
+
+/* For standard laptops (1366x768, 1440x900) */
+@media (min-width: 1366px) and (max-width: 1919px) {
+  #map {
+    height: 550px !important;
+  }
+}
+
+/* Adjust based on viewport height */
+@media (min-height: 900px) {
+  #map {
+    height: 600px !important;
+  }
+}
+
+@media (min-height: 1080px) {
+  #map {
+    height: 700px !important;
+  }
+}
+  
+  /* Guesses grid - stack vertically on mobile */
+  #guessesList > div > .grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+  
+  /* Guess cards */
+  #guessesContainer > div {
+    padding: 0.75rem !important;
+    font-size: 14px !important;
+  }
+  
+  #guessesContainer .grid {
+    gap: 0.5rem !important;
+  }
+  
+  #guessesContainer .material-icons {
+    font-size: 1rem !important;
+  }
+  
+  /* Hints */
+  #globalHints {
+    font-size: 13px !important;
+  }
+  
+  /* Modals */
+  #victoryModal .bg-white,
+  #lossModal .bg-white {
+    padding: 1.25rem !important;
+    margin: 0.75rem !important;
+    max-width: 95vw !important;
+  }
+  
+  #statsModal .bg-white {
+    padding: 1.5rem !important;
+    margin: 0.75rem !important;
+    max-width: 95vw !important;
+  }
+  
+  #victoryModal h2,
+  #lossModal h2 {
+    font-size: 1.5rem !important;
+  }
+  
+  /* Modal stats grid */
+  #victoryModal .grid-cols-3,
+  #lossModal .grid-cols-3 {
+    gap: 0.5rem !important;
+    font-size: 14px !important;
+  }
+  
+  #statsModal .grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.75rem !important;
+  }
+  
+  #statsModal .text-4xl {
+    font-size: 1.875rem !important;
+  }
+  
+  /* Celebration/Try Again SVG */
+  #victoryModal img[src*="celebration"],
+  #lossModal img[src*="tryagain"] {
+    width: 60px !important;
+    height: 60px !important;
+  }
+  
+  /* Fun fact section */
+  #victoryModal .bg-gradient-to-br,
+  #lossModal .bg-gradient-to-br {
+    padding: 1rem !important;
+  }
+  
+  #victoryModal .bg-gradient-to-br p,
+  #lossModal .bg-gradient-to-br p {
+    font-size: 13px !important;
+  }
+}
+
+/* Small Devices - Tablets Portrait (481px to 768px) */
+@media (min-width: 481px) and (max-width: 768px) {
+  body {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+  
+  img[alt="Where in The World"] {
+    max-width: 300px !important;
+  }
+  
+  #map {
+    height: 400px !important;
+    min-height: 400px !important;
+  }
+  
+  /* Keep guesses and hints side by side on tablets */
+  #guessesList > div > .grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 1rem !important;
+  }
+}
+
+/* Medium Devices - Tablets Landscape (769px to 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  img[alt="Where in The World"] {
+    max-width: 380px !important;
+  }
+  
+  #map {
+    height: 450px !important;
+    min-height: 450px !important;
+  }
+}
+
+/* Large Devices - Laptops (1025px to 1440px) */
+@media (min-width: 1025px) and (max-width: 1440px) {
+  #map {
+    height: 520px !important;
+    min-height: 520px !important;
+  }
+}
+
+/* Extra Large Devices - Desktops (1441px+) */
+@media (min-width: 1441px) {
+  #map {
+    height: 600px !important;
+    min-height: 600px !important;
+  }
+  
+  .max-w-7xl {
+    max-width: 90rem !important;
+  }
+}
+
+/* Very narrow screens (Galaxy Fold, etc.) */
+@media (max-width: 360px) {
+  img[alt="Where in The World"] {
+    max-width: 180px !important;
+  }
+  
+  body {
+    padding-left: 0.25rem !important;
+    padding-right: 0.25rem !important;
+  }
+  
+  #searchInput {
+    font-size: 13px !important;
+    padding: 0.5rem !important;
+  }
+  
+  #map {
+    height: 250px !important;
+  }
+  
+  button[aria-label="Statistics"],
+  button[aria-label="How to play"] {
+    width: 2rem !important;
+    height: 2rem !important;
+  }
+}
+
+/* Landscape orientation (short screens) */
+@media (max-height: 650px) and (orientation: landscape) {
+  #map {
+    height: 280px !important;
+    min-height: 280px !important;
+  }
+  
+  /* Make modals scrollable */
+  #victoryModal .bg-white,
+  #lossModal .bg-white,
+  #statsModal .bg-white {
+    max-height: 85vh !important;
+    overflow-y: auto !important;
+  }
+  
+  #howModal .bg-white {
+    max-height: 85vh !important;
+    overflow-y: auto !important;
+  }
+  
+  /* Reduce padding in landscape */
+  body {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+  }
+}
+
+/* iPads and similar tablets - Portrait */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+  #map {
+    height: 500px !important;
+  }
+  
+  #guessesList > div > .grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+
+/* iPads and similar tablets - Landscape */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
+  #map {
+    height: 400px !important;
+  }
+  
+  #guessesList > div > .grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+
+/* Ultra-wide screens */
+@media (min-width: 2560px) {
+  .max-w-7xl {
+    max-width: 120rem !important;
+  }
+  
+  #map {
+    height: 700px !important;
+  }
+}
+/* Limit guess card container height */
+#guessesContainer {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+/* Make guess cards more compact */
+#guessesContainer > div {
+  padding: 0.75rem !important;
+  font-size: 14px !important;
+  margin-bottom: 0.5rem;
+}
+
+/* For 1920x1080 screens, show exactly 4 guesses */
+@media (min-width: 1920px) and (min-height: 1080px) {
+  #guessesContainer {
+    max-height: 450px;
+  }
+}
+    </style>
+</head>
+<body class="min-h-screen py-2" style="background: linear-gradient(135deg, #1a1625 0%, #2d2640 50%, #1a1625 100%);">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6">
+    
+
+<!-- Header -->
+<div class="mb-4 sm:mb-6 relative w-full pt-3 sm:pt-4">
+  <div class="flex flex-col sm:flex-row justify-between items-center sm:items-start gap-4 sm:gap-6 w-full">
+      
+      <!-- Left side - SVG Logo -->
+      <img src="logo.svg" alt="Where in The World" id="mainLogo" class="w-full sm:w-auto" style="height: auto; display: block;" />
+      
+      <!-- Right side - buttons -->
+      <div class="flex gap-3 sm:gap-4 text-sm items-center flex-shrink-0">
+          
+          <!-- Stats button -->
+          <button
+              id="statsBtn"
+              aria-expanded="false"
+              aria-controls="statsModal"
+              type="button"
+              aria-label="Statistics"
+              class="inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 border-2 border-gray-400 text-gray-300 rounded-lg hover:border-[#f28f4c] hover:text-[#f28f4c] focus:outline-none focus:ring-2 focus:ring-[#f28f4c] transition-colors">
+              <span class="material-icons text-lg sm:text-xl">bar_chart</span>
+          </button>
+          
+          <!-- How to play button -->
+          <button
+              id="howBtn"
+              aria-expanded="false"
+              aria-controls="howModal"
+              type="button"
+              aria-label="How to play"
+              class="inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 border-2 border-gray-400 text-gray-300 rounded-lg hover:border-[#f28f4c] hover:text-[#f28f4c] focus:outline-none focus:ring-2 focus:ring-[#f28f4c] transition-colors">
+              <span class="material-icons text-lg sm:text-xl">help_outline</span>
+          </button>
+          
+      </div>
+  </div>
+</div>
+            
+                        
+
+
+            <!-- Centered modal for How to Play (hidden by default) -->
+            <div id="howModal" role="dialog" aria-modal="true" aria-hidden="true" tabindex="-1" class="hidden fixed inset-0 z-50 items-center justify-center bg-black bg-opacity-50 px-4">
+              <div class="bg-white rounded-lg shadow-xl max-w-lg w-full max-h-[80vh] overflow-auto p-6 relative">
+                <button id="howCloseBtn" aria-label="Close How to Play" class="absolute top-3 right-3 text-gray-600 hover:text-gray-800 focus:outline-none">
+                  <svg class="lucide-icon w-5 h-5" viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+                <h3 class="text-2xl font-bold text-orange-500 mb-4">How to Play</h3>
+<ul class="space-y-5 text-sm text-gray-200 leading-relaxed">
+  <li class="flex items-start gap-3">
+    <span class="material-icons text-lg flex-shrink-0" style="color:#f28f4c">check_circle</span>
+    <span>Every day you get a new country to guess.</span>
+  </li>
+  <li class="flex items-start gap-3">
+    <span class="material-icons text-lg flex-shrink-0" style="color:#f28f4c">favorite</span>
+    <span>You have <strong class="text-red-400">10 guesses</strong>. New hints will appear as you play.</span>
+  </li>
+  <li class="flex items-start gap-3">
+    <span class="material-icons text-lg flex-shrink-0" style="color:#f28f4c">place</span>
+    <div>
+      <div class="mb-2">Colored circles mark your guesses on the map:</div>
+      <div class="flex flex-wrap gap-3 pl-2 text-xs">
+        <span class="flex items-start gap-1">
+          <span class="inline-block w-3 h-3 rounded-full" style="background:#4ADE80;"></span> Correct
+        </span>
+        <span class="flex items-start gap-1">
+          <span class="inline-block w-3 h-3 rounded-full" style="background:#FFE066;"></span> Close (within 1000km or same continent)
+        </span>
+        <span class="flex items-start gap-1">
+          <span class="inline-block w-3 h-3 rounded-full" style="background:#F87171;"></span> Far away
+        </span>
+      </div>
+    </div>
+  </li>
+  <li class="flex items-start gap-3">
+    <span class="material-icons text-lg flex-shrink-0" style="color:#f28f4c">info</span>
+    <span>When you win or lose, you'll see interesting facts about the country including its capital, population, largest city, and more!</span>
+  </li>
+  <li class="flex items-center gap-3">
+    <span class="material-icons text-lg flex-shrink-0" style="color:#f28f4c">calendar_today</span>
+    <span>A new mystery country unlocks every day at midnight!</span>
+  </li>
+</ul>
+              </div>
+            </div>
+        </div>
+        <!-- Stats Modal -->
+            <div id="statsModal" role="dialog" aria-modal="true" aria-hidden="true" tabindex="-1" class="hidden fixed inset-0 z-50 items-center justify-center bg-black bg-opacity-60 px-4 backdrop-blur-sm">
+              <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-10 md:p-12 relative transform scale-95 opacity-0 transition-all duration-300" id="statsModalContent">
+                <button id="statsCloseBtn" aria-label="Close Statistics" class="absolute top-4 right-4 text-gray-400 hover:text-white focus:outline-none bg-black bg-opacity-30 rounded-full p-2 transition-all">
+                  <svg class="lucide-icon w-5 h-5" viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+                <h3 class="text-3xl font-bold mb-8 text-center" style="color: #ffffff; letter-spacing: -0.02em;">Statistics</h3>
+                
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-5 text-center">
+  <!-- Played -->
+  <div class="p-6 rounded-xl border-2 border-gray-400 bg-white/5 backdrop-blur-sm transition-all hover:scale-105">
+    <div class="text-4xl font-bold mb-2" style="color: #f28f4c;" id="statsPlayed">0</div>
+    <div class="text-sm text-gray-400 font-medium">Played</div>
+  </div>
+
+  <!-- Win % -->
+  <div class="p-6 rounded-xl border-2 border-gray-400 bg-white/5 backdrop-blur-sm transition-all hover:scale-105">
+    <div class="text-4xl font-bold mb-2" style="color: #f28f4c;" id="statsWinPercent">0</div>
+    <div class="text-sm text-gray-400 font-medium">Win %</div>
+  </div>
+
+  <!-- Current Streak -->
+  <div class="p-6 rounded-xl border-2 border-gray-400 bg-white/5 backdrop-blur-sm transition-all hover:scale-105">
+    <div class="text-4xl font-bold mb-2" style="color: #f28f4c;" id="statsCurrentStreak">0</div>
+    <div class="text-sm text-gray-400 font-medium">Current Streak</div>
+  </div>
+
+  <!-- Best Streak -->
+  <div class="p-6 rounded-xl border-2 border-gray-400 bg-white/5 backdrop-blur-sm transition-all hover:scale-105">
+    <div class="text-4xl font-bold mb-2" style="color: #f28f4c;" id="statsBestStreak">0</div>
+    <div class="text-sm text-gray-400 font-medium">Best Streak</div>
+  </div>
+</div>
+
+                <!-- Reset Button -->
+                <div class="mt-8 text-center">
+                  <button id="resetStatsBtn" class="text-gray-400 hover:text-[#f28f4c] transition-all text-sm underline decoration-gray-400 hover:decoration-[#f28f4c] font-medium">
+                    Reset Statistics
+                  </button>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Victory Modal -->
+<div id="victoryModal" role="dialog" aria-modal="true" aria-hidden="true" tabindex="-1" class="hidden fixed inset-0 z-[6000] items-center justify-center bg-black bg-opacity-70 px-4">
+  <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8 relative transform scale-95 opacity-0 transition-all duration-500" id="victoryModalContent">
+    <button id="victoryCloseBtn" aria-label="Close" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 focus:outline-none">
+      <svg class="lucide-icon w-6 h-6" viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    </button>
+    
+  
+<!-- Country Image & Icon -->
+<div class="text-center mb-4">
+  <!-- Country Image - TALLER VERSION -->
+  <div class="mb-3">
+    <img id="victoryCountryImage" 
+     src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Bratislava_Montage_2020.png/320px-Bratislava_Montage_2020.png" 
+     alt="Country" 
+     class="rounded-lg shadow-xl mx-auto"
+     style="width: 100%; max-width: 500px; height: 300px; object-fit: cover; display: block;">
+  </div>
+  <h2 class="text-3xl font-bold mb-2" style="color: #f28f4c;" id="victoryCountryName">Singapore</h2>
+  <p class="text-lg text-gray-300">You found it!</p>
+</div>
+
+    <!-- Fun Fact Section -->
+    <div class="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-6 mb-6" style="background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);">
+      <div class="flex items-start gap-3">
+        <span class="material-icons text-2xl flex-shrink-0" style="color:#f28f4c;">lightbulb</span>
+        <div>
+          <h3 class="font-bold text-gray-200 mb-2">Did you know?</h3>
+          <p class="text-sm text-gray-300 leading-relaxed" id="victoryFunFact">
+            Singapore is the only country in the world to gain independence against its own will!
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Game Stats - ALL ORANGE -->
+    <div class="grid grid-cols-3 gap-4 text-center">
+      <div class="bg-white/50 rounded-lg p-3" style="background: rgba(255,255,255,0.05);">
+        <div class="text-2xl font-bold mb-1" style="color: #f28f4c;" id="victoryGuessCount">1</div>
+        <div class="text-xs text-gray-400">Guesses</div>
+      </div>
+      <div class="bg-white/50 rounded-lg p-3" style="background: rgba(255,255,255,0.05);">
+        <div class="text-2xl font-bold mb-1" style="color: #f28f4c;" id="victoryStreak">1</div>
+        <div class="text-xs text-gray-400">Streak</div>
+      </div>
+      <div class="bg-white/50 rounded-lg p-3" style="background: rgba(255,255,255,0.05);">
+        <div class="text-2xl font-bold mb-1" style="color: #f28f4c;" id="victoryWinRate">100%</div>
+        <div class="text-xs text-gray-400">Win Rate</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Loss Modal -->
+<div id="lossModal" role="dialog" aria-modal="true" aria-hidden="true" tabindex="-1" class="hidden fixed inset-0 z-[6000] items-center justify-center bg-black bg-opacity-70 px-4">
+  <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8 relative transform scale-95 opacity-0 transition-all duration-500" id="lossModalContent">
+    <button id="lossCloseBtn" aria-label="Close" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 focus:outline-none">
+      <svg class="lucide-icon w-6 h-6" viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    </button>
+    
+    <!-- Country Image & Icon -->
+<div class="text-center mb-4">
+  <!-- Country Image - TALLER VERSION -->
+  <div class="mb-3">
+    <img id="lossCountryImage" 
+     src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Bratislava_Montage_2020.png/320px-Bratislava_Montage_2020.png" 
+     alt="Country" 
+     class="rounded-lg shadow-xl mx-auto"
+     style="width: 100%; max-width: 500px; height: 300px; object-fit: cover; display: block;">
+  </div>
+  <h2 class="text-3xl font-bold mb-2" style="color: #ffffff;">Game Over!</h2>
+  <p class="text-lg text-gray-300 mb-2">Better luck next time</p>
+  <p class="text-md text-gray-400">The answer was: <span class="font-bold" style="color: #f28f4c;" id="lossCountryName">Singapore</span></p>
+</div>
+
+    <!-- Fun Fact Section -->
+    <div class="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-6 mb-6" style="background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);">
+      <div class="flex items-start gap-3">
+        <span class="material-icons text-2xl flex-shrink-0" style="color:#f28f4c;">lightbulb</span>
+        <div>
+          <h3 class="font-bold text-gray-200 mb-2">Did you know?</h3>
+          <p class="text-sm text-gray-300 leading-relaxed" id="lossFunFact">
+            Nearly half of Singapore's land area is covered by greenery, and it's home to over 400 parks!
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Game Stats - ALL ORANGE -->
+    <div class="grid grid-cols-3 gap-4 text-center">
+      <div class="bg-white/50 rounded-lg p-3" style="background: rgba(255,255,255,0.05);">
+        <div class="text-2xl font-bold mb-1" style="color: #f28f4c;" id="lossGuessCount">10</div>
+        <div class="text-xs text-gray-400">Guesses</div>
+      </div>
+      <div class="bg-white/50 rounded-lg p-3" style="background: rgba(255,255,255,0.05);">
+        <div class="text-2xl font-bold mb-1" style="color: #f28f4c;" id="lossStreak">0</div>
+        <div class="text-xs text-gray-400">Streak</div>
+      </div>
+      <div class="bg-white/50 rounded-lg p-3" style="background: rgba(255,255,255,0.05);">
+        <div class="text-2xl font-bold mb-1" style="color: #f28f4c;" id="lossWinRate">0%</div>
+        <div class="text-xs text-gray-400">Win Rate</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+<!-- ========== END LOSS MODAL ========== -->
+
+                <div class="grid lg:grid-cols-2 gap-1 items-stretch">
+            <!-- Left Column - Game -->
+<div class="flex flex-col">
+                <!-- Game Status -->
+                <div id="gameStatus" class="mb-4 hidden"></div>
+
+                <!-- Search Input -->
+                <p class="text-gray-400 text-sm mb-3 px-4 sm:px-6">Can you find today's hidden country? Each guess brings you closer.</p>
+
+                <div id="searchContainer" class="bg-white rounded-lg shadow-lg p-4 mb-4 mx-4 sm:mx-6" style="position: relative; z-index: 100;">
+    
+    <div class="flex items-center justify-between mb-2">
+    <!-- Mode Toggle Switch -->
+    <div class="flex items-center gap-3">
+        <label class="flex items-center cursor-pointer">
+            <div class="relative">
+                <input type="checkbox" id="modeToggle" class="sr-only" />
+                <div class="mode-toggle-bg w-14 h-7 bg-gray-600 rounded-full shadow-inner"></div>
+                <div class="mode-toggle-dot absolute w-5 h-5 bg-white rounded-full shadow left-1 top-1 transition"></div>
+            </div>
+            <span class="ml-3 text-sm font-medium" style="color: #f28f4c;">Timer Mode</span>
+        </label>
+    </div>
+    
+    <!-- Display Label -->
+    <span id="gameLabel" style="color: #f28f4c; font-weight: 600; font-size: 0.875rem;">10 guesses left</span>
+</div>
+                    <div class="relative">
+                        <input
+                            type="text"
+                            id="searchInput"
+                            placeholder="Type a country name..."
+                            class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none"
+                        />
+                        <div id="searchResults" class="absolute z-10 w-full mt-2 bg-white border-2 border-gray-200 rounded-lg shadow-xl max-h-64 overflow-y-auto hidden"></div>
+                    </div>
+                </div>
+
+                <!-- Guesses List -->
+                <!-- Guesses + Hints Grid -->
+                <div id="guessesList" class="hidden flex-1 px-4 sm:px-6">
+  <div class="grid md:grid-cols-2 gap-4 h-full">
+    
+    <!-- Your Guesses -->
+    <div class="bg-white rounded-lg shadow-lg p-4 flex flex-col">
+      <h2 class="text-lg font-bold text-gray-200 mb-3">Your Guesses</h2>
+      <div id="guessesContainer" class="space-y-3 flex-1 overflow-y-auto"></div>
+    </div>
+
+    <!-- Global Hints -->
+    <div id="hintsCard" class="bg-white rounded-lg shadow-lg p-4 flex flex-col">
+      <h2 class="text-lg font-bold text-gray-200 mb-3">Hints</h2>
+      <ul id="globalHints" class="space-y-2 text-sm text-gray-400 flex-1 overflow-y-auto">
+        <li>No hints yet. Start guessing!</li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+            </div>
+
+            <!-- Right Column - Map -->
+            <div class="flex flex-col h-full px-4 sm:px-6">
+                <div id="map" class="w-full flex-1 rounded-lg" style="min-height: 600px;"></div>
+                
+                <!-- Make legend sticky -->
+                <p class="text-xs text-gray-400 mt-2 flex items-center gap-3 flex-wrap" 
+                   style="position: sticky; bottom: 0; background: linear-gradient(135deg, #1a1625 0%, #2d2640 50%, #1a1625 100%); padding: 0.5rem 0; z-index: 10;">
+                  <span class="flex items-center gap-1">
+                    <span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#4ADE80;"></span> Correct
+                  </span>
+                  <span class="flex items-center gap-1">
+                    <span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#FFE066;"></span> Close (within 1000km or same continent)
+                  </span>
+                  <span class="flex items-center gap-1">
+                    <span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#F87171;"></span> Far away
+                  </span>
+                </p>
+            
+    </div>
+    </div>
+<script>
+
+// Country images from Wikimedia Commons (reliable, free, no API key)
+// Add this AFTER <script> tag and BEFORE "let guesses = [];"
+
+const COUNTRY_IMAGES = {
+   "Afghanistan": "https://cdn.britannica.com/55/279455-050-FCD9AE8C/Blue-Mosque-Afghanistan-Mazar-e-Sharif.jpg",
+  "Albania": "https://mediaim.expedia.com/destination/1/09d08f73decbcc1d561c446634122c0e.jpg",
+  "Algeria": "https://upload.wikimedia.org/wikipedia/commons/4/44/Dune_de_sable_au_parc_Culturel_De_l%27Ahaggar_crop.jpg",
+  "Andorra": "https://media.hswstatic.com/eyJidWNrZXQiOiJjb250ZW50Lmhzd3N0YXRpYy5jb20iLCJrZXkiOiJnaWZcL2FuZG9ycmEtMS5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOiIxMjAwIn19fQ==",
+  "Angola": "https://upload.wikimedia.org/wikipedia/commons/9/95/Kalandula_waterfalls_of_the_Lucala-River_in_Malange%2C_Angola.JPG",
+  "Argentina": "https://upload.wikimedia.org/wikipedia/commons/1/15/CABA_-_Avenida_9_de_Julio.jpg",
+  "Armenia": "https://i.natgeofe.com/n/fb00dd03-20f5-4128-a2bb-62fbee4d754d/Tatev-Monastery.gif?w=2880&h=2048",
+  "Australia": "https://upload.wikimedia.org/wikipedia/commons/7/7c/Sydney_Opera_House_-_Dec_2008.jpg",
+  "Austria": "https://upload.wikimedia.org/wikipedia/commons/5/54/1_hallstatt_austria.jpg",
+  "Azerbaijan": "https://upload.wikimedia.org/wikipedia/commons/9/9c/Vista_de_Baku%2C_Azerbaiy%C3%A1n%2C_2016-09-26%2C_DD_101-106_PAN.jpg",
+  
+  // B
+  "Bahamas": "https://upload.wikimedia.org/wikipedia/commons/7/75/Blue_Lagoon.JPG",
+  "Bahrain": "https://upload.wikimedia.org/wikipedia/commons/2/2d/Manama%2C_Bahrain_Decembre_2014.jpg",
+  "Bangladesh": "https://i.pinimg.com/736x/69/ad/70/69ad7004e0c6a9bd58123ac41cf04ca6.jpg",
+  "Barbados": "https://upload.wikimedia.org/wikipedia/commons/1/1d/Bathsheba%2C_Barbados_08.jpg",
+  "Belarus": "https://upload.wikimedia.org/wikipedia/commons/4/40/View_of_Minsk_%28180819%29_09.jpg",
+  "Belgium": "https://upload.wikimedia.org/wikipedia/commons/b/b4/Brussels_view_from_Mont_des_Arts%2C_Brussels%2C_Belgium_%28cropped%29.jpg",
+  "Belize": "https://upload.wikimedia.org/wikipedia/commons/7/72/EnglishCayeBelize.jpg",
+  "Benin": "https://upload.wikimedia.org/wikipedia/commons/3/33/Door_of_no_return.jpg",
+  "Bhutan": "https://upload.wikimedia.org/wikipedia/commons/a/a6/Paro_Taktsang%2C_Bhutan_%28edited%29.jpg",
+  "Bolivia": "https://upload.wikimedia.org/wikipedia/commons/0/04/Salar_de_Uyuni_-_World%27s_Largest_Salt_Flats_-_Bolivia_08_%283781885857%29.jpg",
+  "Bosnia and Herzegovina": "https://upload.wikimedia.org/wikipedia/commons/d/d7/Mostar_Old_Town_Panorama_2007.jpg",
+  "Botswana": "https://upload.wikimedia.org/wikipedia/commons/d/d0/Okavango_delta_-_Botswana_-_panoramio.jpg",
+  "Brazil": "https://upload.wikimedia.org/wikipedia/commons/a/ae/Christ_on_Corcovado_mountain.JPG",
+  "Brunei": "https://upload.wikimedia.org/wikipedia/commons/5/59/Sultan_Omar_Ali_Saifuddin_Mosque_02.jpg",
+  "Bulgaria": "https://upload.wikimedia.org/wikipedia/commons/4/46/Rila_Monastery%2C_August_2013.jpg",
+  "Burkina Faso": "https://upload.wikimedia.org/wikipedia/commons/7/7c/Domes_de_Fabedougou_MS_4589.jpg",
+  "Burundi": "https://upload.wikimedia.org/wikipedia/commons/3/31/Fishing_boats_on_Lake_Tanganyika.jpg",
+  
+  // C
+  "Cambodia": "https://upload.wikimedia.org/wikipedia/commons/d/d4/20171126_Angkor_Wat_4712_DxO.jpg",
+  "Cameroon": "https://upload.wikimedia.org/wikipedia/commons/0/08/Mount_Cameroon_2.jpg",
+  "Canada": "https://upload.wikimedia.org/wikipedia/commons/6/6c/1_lake_louise_pano_2019.jpg",
+  "Cape Verde": "https://upload.wikimedia.org/wikipedia/commons/f/fc/Mindelo-Aug2000.jpg",
+  "Central African Republic": "https://upload.wikimedia.org/wikipedia/commons/a/a3/Boali_waterfalls_-_CAR%27s_only_power_plant_%284112150917%29.jpg",
+  "Chad": "https://upload.wikimedia.org/wikipedia/commons/6/67/Chad_Tousside_Trou_au_Natron_2299.jpg",
+  "Chile": "https://upload.wikimedia.org/wikipedia/commons/4/4d/Torres_del_Paine%2C_Laguna_Azul_09.jpg",
+  "China": "https://upload.wikimedia.org/wikipedia/commons/1/10/20090529_Great_Wall_8185.jpg",
+  "Colombia": "https://upload.wikimedia.org/wikipedia/commons/4/40/Valle_de_Cocora%2C_Colombia_03.jpg",
+  "Comoros": "https://upload.wikimedia.org/wikipedia/commons/3/39/Anjouan_-_Islands_of_Comoros.jpg",
+  "Congo": "https://upload.wikimedia.org/wikipedia/commons/1/10/Paysage_du_territoire_de_Masisi_%2828130228449%29.jpg",
+  "Costa Rica": "https://upload.wikimedia.org/wikipedia/commons/5/5a/Arenal_volcano._Costa_Rica.jpg",
+  "Croatia": "https://upload.wikimedia.org/wikipedia/commons/1/1b/Dubrovnik_s_24.jpg",
+  "Cuba": "https://upload.wikimedia.org/wikipedia/commons/4/42/National-Capitol-and-classic-cars-in-Havana-Cuba-225-031-061A.jpg",
+  "Cyprus": "https://upload.wikimedia.org/wikipedia/commons/9/9a/Roca_de_Afrodita%2C_Chipre%2C_2021-12-10%2C_DD_65.jpg",
+  "Czech Republic": "https://upload.wikimedia.org/wikipedia/commons/a/a7/Prague_%286365119737%29.jpg",
+  
+  // D
+  "Denmark": "https://upload.wikimedia.org/wikipedia/commons/8/8a/Nyhavn_Copenhagen_2.jpg",
+  "Djibouti": "https://upload.wikimedia.org/wikipedia/commons/5/5c/Djib_003.JPG",
+  "Dominica": "https://upload.wikimedia.org/wikipedia/commons/a/a0/Emerald_Pool%2C_Dominica.jpg",
+  "Dominican Republic": "https://upload.wikimedia.org/wikipedia/commons/4/45/Cap_Cana_Marina_Dominican_Republic.jpg",
+  
+  // E
+  "Ecuador": "https://upload.wikimedia.org/wikipedia/commons/7/74/V%C3%B3lcan_Cotopaxi.jpg",
+  "Egypt": "https://upload.wikimedia.org/wikipedia/commons/9/96/Pyramids_of_the_Giza_Necropolis.jpg",
+  "El Salvador": "https://upload.wikimedia.org/wikipedia/commons/1/17/Crat%C3%A8re_du_Volcan_de_Santa_Ana%2C_Salvador.jpg",
+  "Equatorial Guinea": "https://upload.wikimedia.org/wikipedia/commons/d/d5/Kathedrale_Santa_Isabel.jpg",
+  "Eritrea": "https://upload.wikimedia.org/wikipedia/commons/6/61/Asmara%2C_cattedrale_cattolica%2C_01.JPG",
+  "Estonia": "https://upload.wikimedia.org/wikipedia/commons/e/ed/Old_Town_of_Tallinn%2C_Tallinn%2C_Estonia_-_panoramio_%2858%29.jpg",
+  "Ethiopia": "https://upload.wikimedia.org/wikipedia/commons/2/2c/Addis_in_night.jpg",
+  
+  // F
+  "Fiji": "https://upload.wikimedia.org/wikipedia/commons/5/5b/2019-02-02_Queens_Rd%2C_Coral_Coast%2C_Fiji.jpg",
+  "Finland": "https://upload.wikimedia.org/wikipedia/commons/e/ec/Bisaj%C3%A4rvi_in_evening_light_from_the_southwest_in_Sipoonkorpi%2C_Vantaa%2C_Finland%2C_2021_May.jpg",
+  "France": "https://upload.wikimedia.org/wikipedia/commons/c/cb/Eiffel_Tower_1%2C_Paris_August_2013.jpg",
+  
+  // G
+  "Gabon": "https://upload.wikimedia.org/wikipedia/commons/f/f3/Gabon_Loango_National_Park_View_of_Lodge_from_water.jpeg",
+  "Gambia": "https://upload.wikimedia.org/wikipedia/commons/3/31/The_Gambia_%28Unsplash%29.jpg",
+  "Georgia": "https://upload.wikimedia.org/wikipedia/commons/a/af/Old_Tbilisi_Panorama_09.23_%282%29.jpg",
+  "Germany": "https://upload.wikimedia.org/wikipedia/commons/a/a6/Brandenburger_Tor_abends.jpg",
+  "Ghana": "https://upload.wikimedia.org/wikipedia/commons/c/cb/Cape_Coast_Castle_Courtyard_02_Sept_2012.jpg",
+  "Greece": "https://upload.wikimedia.org/wikipedia/commons/e/e6/Classic_view_of_Acropolis.jpg",
+  "Grenada": "https://upload.wikimedia.org/wikipedia/commons/4/42/Grenada_%28Grand_Anse_Beach%29_2.JPG",
+  "Guatemala": "https://upload.wikimedia.org/wikipedia/commons/7/75/Tikal_3.jpg",
+  "Guinea": "https://whc.unesco.org/uploads/thumbs/site_0155_0008-1000-750-20200908110250.jpg",
+  "Guinea-Bissau": "https://assets.vogue.com/photos/6414a211cf213f132c5f9b62/master/w_2240,c_limit/GettyImages-1246265851.jpg",
+  "Guyana": "https://exploringkiwis.com/wp-content/uploads/2018/07/RKP-_DSC7521.jpg",
+  
+  // H
+  "Haiti": "https://2017-2021.state.gov/wp-content/uploads/2019/04/Haiti-1.jpg",
+  "Honduras": "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/0f/01/db/fb/view-from-the-cruise.jpg?w=2000&h=-1&s=1",
+  "Hungary": "https://lp-cms-production.imgix.net/2023-03/GettyRF_473481530.jpg?auto=format,compress&q=72&w=1095&fit=crop&crop=faces,edges",
+  
+  // I
+  "Iceland": "https://images.travelandleisureasia.com/wp-content/uploads/sites/2/2024/02/15094131/kirkjufell-1.jpeg?tr=w-1366,f-jpg,pr-true",
+  "India": "https://i.natgeofe.com/k/42e832f5-fd48-43ff-b338-091bdf4048ca/india-tajmahal.jpg?wp=1&w=1084.125&h=609",
+  "Indonesia": "https://cdn.sanity.io/images/nxpteyfv/goguides/15486940194b45347ac5037248d2363d27dec5ad-1600x1066.jpg",
+  "Iran": "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/08/ee/2d/f5/nasir-al-mulk-mosque.jpg?w=2000&h=-1&s=1",
+  "Iraq": "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/01/9b/eb/78/blick-von-der-festung.jpg?w=2400&h=-1&s=1",
+  "Ireland": "https://i0.wp.com/mpaproject.com/wp-content/uploads/2023/07/Cliffs-of-Moher.-MPA-Project-Travels.jpg?fit=2048%2C1152&ssl=1",
+  "Israel": "https://www.reviewofreligions.org/wp-content/uploads/2021/10/shutterstock_228539263-Resized-1.jpg",
+  "Italy": "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/2f/1f/c1/34/caption.jpg?w=1200&h=-1&s=1&cx=1920&cy=1080&chk=v1_19b8fd93573cc10705fb",
+  
+  // J
+  "Jamaica": "https://a.travel-assets.com/findyours-php/viewfinder/images/res70/110000/110115-Boscobel.jpg",
+  "Japan": "https://www.lot.com/content/dam/lot/lot-com/destination-photos/japonia/Tokyo-5%20.coreimg.jpg/1723628368208/Tokyo-5%20.jpg",
+  "Jordan": "https://deih43ym53wif.cloudfront.net/large_petra-jordan-shutterstock_1030695769_93d66c6973.jpeg",
+  
+  // K
+  "Kazakhstan": "https://mediaim.expedia.com/destination/1/28c38c2e9cb6fbfb9366f04bfba41b86.jpg",
+  "Kenya": "https://s3.amazonaws.com/cdn.micato.com/wp-content/uploads/2018/09/07223907/maasai-mara-1110x700.jpg",
+  "Kiribati": "https://www.thoughtco.com/thmb/vzDmlb2PJyV0n8AEGba-dtWXNd8=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/GettyImages-539058418-be0483c5ac0646fbb92662f2685249e7.jpg",
+  "Kosovo": "https://undiscovered-destinations.com/wp-content/uploads/2025/03/Kosovo-Destination.jpg",
+  "Kuwait": "https://statemag.state.gov/wp-content/uploads/2019/10/POM-KUWAIT-18.jpg",
+  "Kyrgyzstan": "https://www.remotelands.com/remotenew1/dist/images/country/kyrgyzstan/b170629001.jpg",
+  
+  // L
+  "Laos": "https://blog.butterfield.com/wp-content/uploads/2017/09/laos-2091194_1920-freestock-1600x1000-compressed.png",
+  "Latvia": "https://www.state.gov/wp-content/uploads/2018/11/Latvia-2107x1406.jpg",
+  "Lebanon": "https://statemag.state.gov/wp-content/uploads/2019/07/POM-Beirut-10.jpg",
+  "Lesotho": "https://www.state.gov/wp-content/uploads/2018/11/Lesotho-e1555940558396.jpg",
+  "Liberia": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiR34PAelmX0b6M1ki9O6AGhBTt4ltG7mFawpHoRKYmtpaGwGis_HbgSvvpV_XzL3OiwrnIgKTUYXryhizN9W0-X5sPiGsTiE3AYcYXlGgqX2vp4X5lgvFMlCvci_S4IpwjCtSRoTBySXAUc-5KrMUVW_TBmIddfXCML2BKBIlvN_iR1tiFIpabEKFu/s3840/Liberia-Traveling-72.JPG",
+  "Libya": "https://i.natgeofe.com/k/78c322ca-f4b0-433c-8273-3652cdd7a457/libya-tripoli.jpg",
+  "Liechtenstein": "https://www.mirygiramondo.com/wp-content/uploads/2024/06/castle-7581503_1920.jpg",
+  "Lithuania": "https://ychef.files.bbci.co.uk/2000x1123/p0g1ppj1.jpeg",
+  "Luxembourg": "https://nomadphotographer.com/wp-content/uploads/2025/03/DSC00547-HDR-1536x1025.jpg",
+  
+  // M
+  "Madagascar": "https://www.worldatlas.com/r/w2560-q80/upload/72/6d/f8/shutterstock-1125367931.jpg",
+  "Malawi": "https://yellowzebrasafaris.com/media/41513/nkwichi-canoeing-malawi.jpg?width=2048&height=1024&format=jpg&v=1da5e0f7ccdbf70",
+  "Malaysia": "https://i.natgeofe.com/k/8dc7401d-fac9-43c5-a6d4-d056401f7779/kuala-lumpur.jpg?wp=1&w=1084.125&h=721.875",
+  "Maldives": "https://afar.brightspotcdn.com/dims4/default/ea28eda/2147483647/strip/false/crop/3000x1688+0+275/resize/1200x675!/quality/90/?url=https%3A%2F%2Fk3-prod-afar-media.s3.us-west-2.amazonaws.com%2Fbrightspot%2Fb2%2Ff4%2F9a1ebe3f427f8e5eb937f8df8998%2Ftravelguides-maldives-videomediastudioeurope-shutterstock.jpg",
+  "Mali": "https://www.worldatlas.com/r/w1200/upload/4d/82/37/timbuktu.jpg",
+  "Malta": "https://internationalliving.com/_next/image/?url=https%3A%2F%2Fimages.ctfassets.net%2Fwv75stsetqy3%2F7rTzoyS6NbT9DUhSyb2F9E%2F7b2e47b65e3a5a06f6c3b236b442947b%2FMalta.jpg%3Fq%3D60%26fit%3Dfill%26fm%3Dwebp&w=3840&q=60",
+  "Marshall Islands": "https://paradises.com/wp-content/uploads/2024/03/marshallislands-jpg.webp",
+  "Mauritania": "https://media.hswstatic.com/eyJidWNrZXQiOiJjb250ZW50Lmhzd3N0YXRpYy5jb20iLCJrZXkiOiJnaWZcL3NodXR0ZXJzdG9jay0yMDc0OTQ5Njk1LmpwZyIsImVkaXRzIjp7InJlc2l6ZSI6eyJ3aWR0aCI6IjEyMDAifX19",
+  "Mauritius": "https://mediaim.expedia.com/destination/1/50d5e5b1b6e755d47c464d61650206af.jpg",
+  "Mexico": "https://media.cntraveler.com/photos/5a92f25dc6516a534a5304e9/master/w_1024%2Cc_limit/Metropolitan-Cathedral_GettyImages-115006326.jpg",
+  "Micronesia": "https://statemag.state.gov/wp-content/uploads/2021/06/0721pom-13.jpg",
+  "Moldova": "https://mediaim.expedia.com/destination/1/ea0a63375e6a1e41b15b27b304139c27.jpg",
+  "Monaco": "https://asset.montecarlosbm.com/styles/hero_image_desktop/s3/media/orphea/ca_casino_square_2020_0108.jpg.jpeg?h=83214b8f&itok=G6Zn9TRQ",
+  "Mongolia": "https://2017-2021.state.gov/wp-content/uploads/2019/04/Mongolia-2109x1406.jpg",
+  "Montenegro": "https://www.royalcaribbean.com/media-assets/pmc/content/dam/shore-x/kotor-ktr/kv95-brilliance-of-boka-bay/perast-kotor-montenegro-panoramic-view-from-water-boat-in-crystal-clear-water-and-old-town-in-background.jpg?w=1920",
+  "Morocco": "https://images.contentstack.io/v3/assets/blt06f605a34f1194ff/blt1c1c620107f17f6b/687f9d512a594b6d7878bb31/iStock-475057992-2-HEADER_MOBILE.jpg?format=webp&quality=60&width=1440",
+  "Mozambique": "https://www.africaodyssey.com/site/odyssey-image-proxy/park/bazaruto-archipelago-tailor-made-mozambique-beach-holidays=403005-300.jpg",
+  "Myanmar": "https://cdn.britannica.com/12/61412-050-A4FCE8CE/Ruins-pagodas-shrines-Buddhist-Myanmar-Pagan.jpg",
+  
+  // N
+  "Namibia": "https://www.go2africa.com/wp-content/uploads/2019/09/banner1-1920x630-1.jpg",
+  "Nauru": "https://www.travelandleisure.com/thmb/iuqoDTfWKhgNZDSpjo8B1KxQu9E=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/TAL-nauru-NAURUPASPRT0325-0c475114c47b4d1bbb275e9cf1f4bb10.jpg",
+  "Nepal": "https://www.discovertreks.com/wp-content/uploads/2017/09/Nepal-discover-himalayan-treks.jpg",
+  "Netherlands": "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/2e/b5/0b/4a/caption.jpg?w=1200&h=-1&s=1&cx=1920&cy=1080&chk=v1_1f5914ade620577562b5",
+  "New Zealand": "https://www.moatrek.com/wp-content/uploads/2025/08/milford-sound-travel-guide.png",
+  "Nicaragua": "https://s.abcnews.com/images/GMA/volcano-main-ss-ps-200228_hpMain_16x9_1600.jpg",
+  "Niger": "https://www.palacetravel.com/wp-content/uploads/2020/08/A%C3%AFr-Mountains-of-Niger.jpg",
+  "Nigeria": "https://img.atlasobscura.com/r2ashmTvzk8RqB_ii-FODOVTxR3oBaE7SP4ovkcS6zw/rs:fill:780:520:1/g:ce/q:81/sm:1/scp:1/ar:1/aHR0cHM6Ly9hdGxh/cy1kZXYuczMuYW1h/em9uYXdzLmNvbS91/cGxvYWRzL3BsYWNl/X2ltYWdlcy84MjNk/MDZhMi03NTM3LTQ4/MTgtYWJlMi03OWZm/NWJjYmJiYmQyNzM3/YTYxMzFkNzRmNjEz/M2JfR2V0dHlJbWFn/ZXMtNDgxNjYwOTc5/LmpwZw.jpg",
+  "North Korea": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/PyongYang-Arch_of_Triumph.jpg/2560px-PyongYang-Arch_of_Triumph.jpg",
+  "North Macedonia": "https://galloparoundtheglobe.com/wp-content/uploads/2019/07/Ohrid-featured.jpg",
+  "Norway": "https://assets.micontenthub.com/traveloffers/travel-tips/norway-jpg_C68Dk3_8V.jpg",
+  
+  // O
+  "Oman": "https://blog.onevasco.com/wp-content/uploads/muscat.jpg",
+  
+  // P
+  "Pakistan": "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/0d/d5/1c/94/passu-valley-hunza-valley.jpg?w=800&h=-1&s=1",
+  "Palau": "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/0d/60/1b/d9/a-different-angle-from.jpg?w=1200&h=700&s=1",
+  "Palestine": "https://www.caabu.org/sites/default/files/inline-images/josh-appel-QsU8GRwyS3k-unsplash%20%281%29.jpg",
+  "Panama": "https://mediaim.expedia.com/destination/1/919b43d85bf36a400b3c07d30881f725.jpg",
+  "Papua New Guinea": "https://peakvisor.com/photo/HD/Papua-New-Guinea-panorama-marine-reserve-raja-ampat-new-429392200.jpg",
+  "Paraguay": "https://cdn.gihub.org/umbraco/media/3544/3.jpg",
+  "Peru": "https://cdn.mos.cms.futurecdn.net/WFJBpzs4J5x3uvbeKdnm3i.jpg",
+  "Philippines": "https://i.natgeofe.com/n/04505c35-858b-4e95-a1a7-d72e5418b7fc/steep-karst-cliffs-of-el-nido-in-palawan.jpg?w=1534&h=768",
+  "Poland": "https://i.natgeofe.com/k/6eb7149d-9876-40ac-9bf7-d261931ddb56/poland-warsaw.jpg?wp=1&w=1084.125&h=609",
+  "Portugal": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Lisboa_-_Portugal_%2852597836992%29.jpg/1200px-Lisboa_-_Portugal_%2852597836992%29.jpg",
+  
+  // Q
+  "Qatar": "https://a.travel-assets.com/findyours-php/viewfinder/images/res70/555000/555257-qatar.jpg",
+  
+  // R
+  "Romania": "https://media.cntravellerme.com/photos/686fba121f3b9dd9d1a32715/4:3/w_4912,h_3684,c_limit/481284732",
+  "Russia": "https://www.advantour.com/russia/images/moscow/saint-basils-cathedral.jpg",
+  "Rwanda": "https://images.goway.com/production/hero/Virunga%20Mountains%2C%20Rwanda_iStock-1254053927.jpg?VersionId=KLa1SG.ToNKym.GawKH_QE2cmLLGw0bV",
+  
+  // S
+  "Saint Kitts and Nevis": "https://www.worldatlas.com/r/w1200-q80/upload/f9/26/e4/shutterstock-631103429.jpg",
+  "Saint Lucia": "https://afar.brightspotcdn.com/dims4/default/899878f/2147483647/strip/true/crop/728x500+36+0/resize/660x453!/quality/90/?url=https%3A%2F%2Fk3-prod-afar-media.s3.us-west-2.amazonaws.com%2Fbrightspot%2Fhttps%3A%2F%2Fafar-production.imgix.net%2Fuploads%2Fimages%2Fpost_images%2Fimages%2FYAN1HZMyXd%2Foriginal_Pitons.IBR-1602307N%C2%A9NorbertPropst.AGE.jpga0%2Fdf%2F027756228a6ac41e88098b892552%2Foriginal-pitons-ibr-1602307n-norbertpropst-age.jpg",
+  "Saint Vincent and the Grenadines": "https://www.worldatlas.com/r/w1200/upload/23/c7/f4/kingstown-capital-saint-vincent.jpg",
+  "Samoa": "https://a.travel-assets.com/findyours-php/viewfinder/images/res70/61000/61991-Samoa.jpg",
+  "San Marino": "https://images.winalist.com/blog/wp-content/uploads/2023/06/26182256/AdobeStock_318615601.jpeg",
+  "Saudi Arabia": "https://hub.wtm.com/wp-content/uploads/2020/11/SAUDI-1-760x475@2x.jpg",
+  "Senegal": "https://lp-cms-production.imgix.net/2023-03/GettyImages-694213668.jpg?auto=format,compress&q=72&w=1095&fit=crop&crop=faces,edges",
+  "Serbia": "https://lp-cms-production.imgix.net/2023-03/shutterstockRF_220992322.jpg?auto=format,compress&q=72&w=1095&fit=crop&crop=faces,edges",
+  "Seychelles": "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/15/33/fb/42/seychelles.jpg?w=1400&h=1400&s=1",
+  "Sierra Leone": "https://content.r9cdn.net/rimg/dimg/bc/e8/c16f12e0-city-5571-169fd60e503.jpg?width=1366&height=768&xhint=2037&yhint=1872&crop=true",
+  "Singapore": "https://www.visitsingapore.com/neighbourhood/featured-neighbourhood/marina-bay/merlion-park/_jcr_content/root/responsivegrid/containercomponent/par/columncntrl/par1/containercomponent/par/image.img.jpeg/1729672232547/merlion-park-1354x916.jpeg",
+  "Slovakia": "https://images.squarespace-cdn.com/content/v1/6321be983796bc30b4aff55b/1b84edc6-05c6-453a-a50b-174de85dae9d/Iconic-Bratislava-Castle-Slovakia.jpg",
+  "Slovenia": "https://cdn1.matadornetwork.com/blogs/1/2011/05/slovenia-1200x697.jpg",
+  "Solomon Islands": "https://ciobulletin.com/story_image_upload/home_image/ciobulletin-solomon-islands-largest-coral-marine-science-technology.webp",
+  "Somalia": "https://www.hornheritage.org/wp-content/uploads/lighthouseHeader-scaled.jpg",
+  "South Africa": "https://cdn.britannica.com/42/126842-050-0803BC41/Sea-Point-Cape-Town-SAf.jpg",
+  "South Korea": "https://a-us.storyblok.com/f/1018766/1365x1030/0addf3bfd1/southkorea_gyeongbokgungpalace_hyangwonjeongpavilion.png",
+  "South Sudan": "https://cdn.britannica.com/90/150790-050-081325A0/view-Bahr-Al-Jabal-South-Sudan-Juba.jpg",
+  "Spain": "https://amigoenergy.com/wp-content/uploads/2024/08/la-sagrada-familia-in-barcelona-antoni-gauds-barcelona-masterpiece.jpg",
+  "Sri Lanka": "https://static01.nyt.com/images/2019/02/03/travel/03frugal-srilanka01/merlin_148552275_74c0d250-949c-46e0-b8a1-e6d499e992cf-superJumbo.jpg",
+  "Sudan": "https://www.wanderlustmagazine.com/wp-content/uploads/2023/10/meroe-pyramids-shutterstock_323675330jpg-web.jpg",
+  "Suriname": "https://davidsbeenhere.com/wp-content/uploads/2019/10/top-15-things-to-see-and-do-in-paramaribo-suriname-south-america-davidsbeenhere80.jpg",
+  "Sweden": "https://image.tallink.com/image/upload/f_auto,fl_lossy,q_auto:best,h_1378,w_2448/travel/destinations/sweden/stockholm/stockholm-1.jpg",
+  "Switzerland": "https://cdn.britannica.com/65/162465-050-9CDA9BC9/Alps-Switzerland.jpg",
+  "Syria": "https://www.thoughtco.com/thmb/2t4pOyOrFJXTI6txiHzlOZHW6gA=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/GettyImages-639630840-f5eaac1e4d964237bc70991061ff73eb.jpg",
+  
+  // T
+  "Taiwan": "https://cdn.sanity.io/images/nxpteyfv/goguides/8073613adf9cb2bfcdc7672e654a38ff2892dd15-1600x1067.jpg",
+  "Tajikistan": "https://ta-img.tatinta.com/resize/1024/webp/tour/file-1703906640915.jpg",
+  "Tanzania": "https://cdn.britannica.com/34/153434-050-863E8023/Mount-Kilimanjaro-Tanzania.jpg",
+  "Thailand": "https://www.travelandleisure.com/thmb/nDDNqO2EctQhiIfZrxeXTF47zhE=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/TAL-koh-phi-phi-PLACESTHAILAND1023-09b9d347b3cd4844b4ae19e4e06a9a6d.jpg",
+  "Togo": "https://statemag.state.gov/wp-content/uploads/sites/1/nggallery/pom-togo/0421POM-4.jpg",
+  "Tonga": "https://a.travel-assets.com/findyours-php/viewfinder/images/res70/213000/213688-Tonga.jpg",
+  "Trinidad and Tobago": "https://www.islandexperiencestt.com/wp-content/uploads/2021/10/Maracas-Beach-Trip-11.jpg",
+  "Tunisia": "https://www.tunisia.sk/wp-content/uploads/2023/04/shu-Tunisia-SidiBouSaid-760300645-1440x823-1.jpg",
+  "Turkey": "https://www.wickersworld.co.uk/wp-content/uploads/2019/09/Balloon-Rides-in-Turkey.jpg",
+  "Turkmenistan": "https://geology.com/oil-and-gas/darvaza-gas-crater/darvaza-gas-crater.jpg",
+  "Tuvalu": "https://iugs-geoheritage.org/wp-content/uploads/2022/07/006-1_Funafuti-Atoll.jpg",
+  
+  // U
+  "Uganda": "https://pictures.altai-travel.com/1920x0/sipi-falls-in-uganda-adobe-stock-4014.jpg",
+  "Ukraine": "https://i.natgeofe.com/k/29ce0d21-6863-4fe5-a0ed-082ad307161c/Kyiv_Ukraine_0322_4x3.jpg",
+  "United Arab Emirates": "https://www.burjkhalifa.ae/wp-content/uploads/2024/08/BURJ-KHALIFE-Hero-image-1-min-1.jpg",
+  "United Kingdom": "https://www.fattiretours.com/app/uploads/2022/03/london-big-ben.jpg",
+  "United States": "https://www.historyhit.com/app/uploads/2020/11/Statue-of-Liberty-e1632495792514.jpg",
+  "Uruguay": "https://images.squarespace-cdn.com/content/v1/52efc94ae4b01409c74273d6/1585834171615-UL7OJYX14WAZC26CASHB/montevideo_grande.jpg?format=1500w",
+  "Uzbekistan": "https://media.cnn.com/api/v1/images/stellar/prod/gettyimages-1185723641v2.jpg?c=original",
+  
+  // V
+  "Vanuatu": "https://cdn.britannica.com/92/96692-050-0419F736/Iririki-Island-harbour-Port-Vila-Vanuatu-Efate.jpg",
+  "Vatican City": "https://excursionmania.com/uploads/regions/region/vatican1.jpg",
+  "Venezuela": "https://cdn.britannica.com/91/5391-050-78522514/Victoria-Falls-bridge-Zambezi-River-Zimbabwe-Zambia.jpg",
+  "Vietnam": "https://mediaim.expedia.com/destination/1/aadc31a75b09b36c7c9395876766ef4e.jpg",
+  
+  // Y
+  "Yemen": "https://static.wixstatic.com/media/7335d9_8bb7b4a005c045548bfedbecc93db575~mv2.jpeg/v1/fill/w_980,h_713,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/7335d9_8bb7b4a005c045548bfedbecc93db575~mv2.jpeg",
+  
+  // Z
+  "Zambia": "https://www.intrepidtravel.com/adventures/wp-content/uploads/2018/10/3.-Intrepid-Travel-zambia_victoria-falls-sunset.jpg",
+  "Zimbabwe": "https://good-nature-blog-uploads.s3.amazonaws.com/uploads/2023/10/AdobeStock_251323196.jpg"
+};
+
+// Helper function to get country image
+function getCountryImageUrl(countryName) {
+  // Return specific image if available, otherwise use a generic placeholder
+  return COUNTRY_IMAGES[countryName] || 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Palace_of_Nations.jpg/320px-Palace_of_Nations.jpg';
+}
+
+
+let guesses = [];
+let map = null;
+let markers = [];
+let gameMode = 'guess'; // 'guess' or 'timer'
+let timerSeconds = 300; // 5 minutes
+let timerInterval = null;
+let VALID_MYSTERY_COUNTRIES = [];
+
+
+// Countries to exclude from daily selection (too small/unknown, but still guessable)
+const EXCLUDED_FROM_DAILY = [
+  // Pacific microstates
+  'Nauru', 'Tuvalu', 'Kiribati', 'Marshall Islands', 'Palau', 'Micronesia', 'Samoa', 'Tonga',
+  // Lesser known African countries
+  'Equatorial Guinea', 'São Tomé and Príncipe', 'Comoros', 'Djibouti', 'Eritrea', 
+  'Cape Verde', 'Guinea-Bissau', 'Lesotho', 'Eswatini',
+  // Small European microstates
+  'San Marino', 'Liechtenstein', 'Andorra', 'Monaco', 'Malta',
+  // Caribbean micro countries
+  'Saint Kitts and Nevis', 'Saint Lucia', 'Saint Vincent and the Grenadines', 
+  'Dominica', 'Antigua and Barbuda', 'Grenada', 'Barbados'
+];
+
+
+// Country details are taken from the parsed CSV and shown on win (capital, population, largest city, life expectancy, language, GDP).
+
+// Lightweight canvas confetti (no external libraries)
+function runConfetti(){
+  // create a canvas if missing
+  let canvas = document.getElementById('confettiCanvas');
+  if(!canvas){
+    canvas = document.createElement('canvas');
+    canvas.id = 'confettiCanvas';
+    canvas.style.position = 'fixed';
+    canvas.style.left = 0;
+    canvas.style.top = 0;
+    canvas.style.pointerEvents = 'none';
+    canvas.style.zIndex = 9999;
+    document.body.appendChild(canvas);
+  }
+  const ctx = canvas.getContext('2d');
+  function resize(){
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const confetti = [];
+  const colors = ['#ef4444','#f97316','#f59e0b','#22c55e','#06b6d4','#3b82f6','#8b5cf6'];
+
+  for(let i=0;i<150;i++){
+    confetti.push({
+      x: Math.random()*canvas.width,
+      y: Math.random()*-canvas.height,
+      w: 6 + Math.random()*8,
+      h: 6 + Math.random()*8,
+      vx: -3 + Math.random()*6,
+      vy: 2 + Math.random()*6,
+      color: colors[Math.floor(Math.random()*colors.length)],
+      rot: Math.random()*360,
+      vr: -5 + Math.random()*10
+    });
+  }
+
+  let start = null;
+  function step(ts){
+    if(!start) start = ts;
+    const elapsed = ts - start;
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    confetti.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += 0.05; // gravity
+      p.rot += p.vr;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot * Math.PI/180);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+      ctx.restore();
+    });
+
+    // remove off-screen pieces slowly
+    if(elapsed < 4000){
+      requestAnimationFrame(step);
+    } else {
+      // fade out
+      const fadeSteps = 30;
+      let fade = 0;
+      const fadeInterval = setInterval(()=>{
+        fade++;
+        ctx.fillStyle = `rgba(255,255,255,${fade/fadeSteps})`;
+        ctx.fillRect(0,0,canvas.width,canvas.height);
+        if(fade >= fadeSteps){
+          clearInterval(fadeInterval);
+          try{ canvas.remove(); } catch(e){}
+        }
+      }, 30);
+    }
+  }
+  requestAnimationFrame(step);
+}
+
+// Initialize Mapbox map
+mapboxgl.accessToken = 'pk.eyJ1IjoidmlzaGFraGFnYXV0YW0iLCJhIjoiY21nNno5emlqMDFhbTJtcTFxcDM3emlhYyJ9.EddfEdumBSMdGUR5pyNi3A';
+
+// Replace the map initialization (around line 1190)
+// Replace the map initialization (around line 1190)
+map = new mapboxgl.Map({
+  container: 'map',
+  style: {
+    'version': 8,
+    'sources': {
+      'raster-tiles': {
+        'type': 'raster',
+        'tiles': ['https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}'],
+        'tileSize': 256
+      }
+    },
+    'layers': [{
+      'id': 'simple-tiles',
+      'type': 'raster',
+      'source': 'raster-tiles',
+      'minzoom': 0,
+      'maxzoom': 22
+    }]
+  },
+  center: [0, 20],
+  zoom: 2
+});
+
+// Store highlighted countries
+const highlightedCountries = new Map();
+
+// Wait for map to load before adding markers and setting up country highlighting
+map.on('load', () => {
+  console.log('Mapbox map loaded');
+  
+  // Add admin boundaries source for country polygons
+  // Mapbox vector tiles include admin boundaries
+  if (!map.getSource('mapbox-admin-0')) {
+    // We'll use the built-in admin boundaries from the style
+    // and add a layer to highlight guessed countries
+    console.log('Map style loaded with admin boundaries');
+  }
+});
+
+// Load countries data from CSV file (no APIs)
+async function getCountriesData() {
+  try {
+    console.log('Loading countries from CSV file...');
+    
+    // Fetch CSV file
+    const response = await fetch('countries.csv');
+    if (!response.ok) {
+      throw new Error(`Failed to load CSV file: ${response.status}`);
+    }
+    
+    const csvText = await response.text();
+    const lines = csvText.split('\n').filter(line => line.trim());
+    
+    if (lines.length < 3) {
+      throw new Error('CSV file appears to be empty or invalid');
+    }
+    
+    // Parse header (line 1, index 1) - handle the multi-line header
+    const headerLine = lines[1];
+    const header = parseCSVLine(headerLine);
+    
+    // Find column indices - handle corrupted CSV structure
+    // The CSV has continent as first column in DATA rows, then country name as second column
+    // But the HEADER row doesn't have continent first, so we need to adjust indices
+    const continentIdx = 0; // Continent is first column in DATA rows
+    const countryIdx = 1;    // Country name is second column in DATA rows
+    
+    // Find other column indices from header (these are WITHOUT the continent column)
+    // But in data rows, we need to add 1 to account for continent being prepended
+    let abbrevIdx = header.findIndex(h => h.includes('Abbreviation') || h === 'Abbreviation');
+    let capitalIdx = header.findIndex(h => h.includes('Capital') || h.includes('Major City'));
+    let populationIdx = header.findIndex(h => h.includes('Population') && !h.includes('Labor') && !h.includes('participation'));
+    let languageIdx = header.findIndex(h => h.includes('language') || h.includes('Language'));
+    let currencyIdx = header.findIndex(h => h.includes('Currency') || h.includes('currency'));
+    
+    // Adjust indices: in data rows, continent is prepended, so add 1 to header indices
+    if (abbrevIdx >= 0) abbrevIdx += 1;
+    if (capitalIdx >= 0) capitalIdx += 1;
+    if (populationIdx >= 0) populationIdx += 1;
+    if (languageIdx >= 0) languageIdx += 1;
+    if (currencyIdx >= 0) currencyIdx += 1;
+    
+    // Latitude and Longitude are typically last two columns in data rows
+    // In data rows, they're at the end (after continent prepend)
+    let latIdx = header.length; // Last but one (accounting for continent)
+    let lonIdx = header.length + 1; // Last (accounting for continent)
+    
+    // Try to find them by name in header, then adjust
+    const latIdxByName = header.findIndex(h => h.includes('Latitude') || h === 'Latitude');
+    const lonIdxByName = header.findIndex(h => h.includes('Longitude') || h === 'Longitude');
+    if (latIdxByName >= 0) latIdx = latIdxByName + 1; // +1 for continent column
+    if (lonIdxByName >= 0) lonIdx = lonIdxByName + 1; // +1 for continent column
+    
+    let lifeExpIdx = header.findIndex(h => h.includes('Life expectancy') || h.includes('expectancy'));
+    let largestCityIdx = header.findIndex(h => h.includes('Largest city') || h.includes('largest'));
+    if (lifeExpIdx >= 0) lifeExpIdx += 1;
+    if (largestCityIdx >= 0) largestCityIdx += 1;
+    
+    console.log('CSV Header indices (adjusted for data rows):', { 
+      countryIdx, continentIdx, capitalIdx, latIdx, lonIdx, populationIdx,
+      headerLength: header.length 
+    });
+    
+    COUNTRIES_DATA = [];
+    
+    // Parse data rows (starting from line 2, index 2)
+    for (let i = 2; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+      
+      const parts = parseCSVLine(line);
+      
+      if (parts.length < Math.max(latIdx, lonIdx, countryIdx) + 1) {
+        console.warn(`Skipping row ${i}: insufficient columns (${parts.length} found)`);
+        continue;
+      }
+      
+      const countryName = parts[countryIdx]?.trim();
+      if (!countryName || countryName === 'Continent' || countryName === 'Unknown') continue;
+      
+      // Get coordinates - they should be numeric values near the end
+      let latStr = null;
+      let lonStr = null;
+      
+      // Try to find lat/lon - they should be the last two numeric values
+      for (let j = parts.length - 1; j >= 0; j--) {
+        const val = parts[j]?.trim();
+        if (!val) continue;
+        
+        const num = parseFloat(val);
+        if (!isNaN(num) && num >= -180 && num <= 180) {
+          if (lonStr === null) {
+            lonStr = val;
+          } else if (latStr === null) {
+            latStr = val;
+            break;
+          }
+        }
+      }
+      
+      // Fallback to indexed approach
+      if (!latStr && latIdx >= 0 && parts[latIdx]) latStr = parts[latIdx].trim();
+      if (!lonStr && lonIdx >= 0 && parts[lonIdx]) lonStr = parts[lonIdx].trim();
+      
+      if (!latStr || !lonStr) {
+        console.warn(`Skipping ${countryName}: missing coordinates`);
+        continue;
+      }
+      
+      const lat = parseFloat(latStr);
+      const lon = parseFloat(lonStr);
+      
+      if (isNaN(lat) || isNaN(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) {
+        console.warn(`Skipping ${countryName}: invalid coordinates (${lat}, ${lon})`);
+        continue;
+      }
+      
+      // Get continent from CSV
+      let continent = 'Unknown';
+      if (continentIdx >= 0 && parts[continentIdx]) {
+        const continentVal = parts[continentIdx].trim();
+        if (continentVal && continentVal !== 'Continent' && continentVal !== 'Unknown') {
+          // Validate it's a real continent name
+          const validContinents = ['Asia', 'Europe', 'Africa', 'North America', 'South America', 'Oceania'];
+          if (validContinents.includes(continentVal)) {
+            continent = continentVal;
+          } else {
+            continent = getContinent(lat, lon);
+          }
+        } else {
+          continent = getContinent(lat, lon);
+        }
+      } else {
+        continent = getContinent(lat, lon);
+      }
+      
+      // Get other fields - use fixed indices based on CSV structure
+      // Data row structure: Continent(0), Country(1), Density(2), Abbreviation(3), ..., Capital(9), ..., Population(~27), Lat, Lon
+      const code = abbrevIdx >= 0 && parts[abbrevIdx] ? (parts[abbrevIdx].trim() || '') : 
+                   (parts[3] ? parts[3].trim() : ''); // Fallback to index 3 (Abbreviation)
+      
+      const capital = capitalIdx >= 0 && parts[capitalIdx] ? (parts[capitalIdx].trim() || '') : 
+                      (parts[9] ? parts[9].trim() : ''); // Fallback to index 9 (Capital/Major City)
+      
+      const largestCity = largestCityIdx >= 0 && parts[largestCityIdx] ? (parts[largestCityIdx].trim() || capital) : 
+                          (parts[20] ? parts[20].trim() : capital); // Fallback to index 20 (Largest city)
+      
+      const officialLanguage = languageIdx >= 0 && parts[languageIdx] ? (parts[languageIdx].trim() || '') : 
+                               (parts[24] ? parts[24].trim() : ''); // Fallback to index 24 (Official language)
+      
+      const currency = currencyIdx >= 0 && parts[currencyIdx] ? (parts[currencyIdx].trim() || '') : 
+                       (parts[12] ? parts[12].trim() : ''); // Fallback to index 12 (Currency-Code)
+      
+      // Parse population - it's around index 27-28 in data rows (after continent prepend)
+      // Population is typically a large quoted number like "1,366,417,754"
+      let population = 0;
+      if (populationIdx >= 0 && parts[populationIdx]) {
+        let popStr = parts[populationIdx].trim();
+        // Remove quotes and commas
+        popStr = popStr.replace(/^["']|["']$/g, '').replace(/,/g, '');
+        population = parseInt(popStr) || 0;
+      } else {
+        // Fallback: try index 29 directly (where population actually is in CSV structure)
+        if (parts[29]) {
+          let popStr = parts[29].trim();
+          popStr = popStr.replace(/^["']|["']$/g, '').replace(/,/g, '');
+          const popNum = parseInt(popStr);
+          if (popNum > 1000) {
+            population = popNum;
+          }
+        }
+        
+        // Last resort: search for large numbers with commas
+        if (population === 0) {
+          for (let idx = 25; idx < Math.min(parts.length - 2, 35); idx++) {
+            if (parts[idx]) {
+              let popStr = parts[idx].trim();
+              if (popStr.includes(',') && popStr.replace(/[,"]/g, '').length > 6) {
+                popStr = popStr.replace(/^["']|["']$/g, '').replace(/,/g, '');
+                const popNum = parseInt(popStr);
+                if (popNum > 100000 && popNum < 10000000000) {
+                  population = popNum;
+                  break;
+                }
+              }
+            }
+          }
+        }
+      }
+      
+      // If still no population found, try a different approach - look for the largest number
+      if (population === 0) {
+        let maxPop = 0;
+        for (let idx = 20; idx < parts.length - 2; idx++) {
+          if (parts[idx]) {
+            const cleaned = parts[idx].trim().replace(/^["']|["']$/g, '').replace(/,/g, '');
+            const num = parseInt(cleaned);
+            if (!isNaN(num) && num > maxPop && num < 10000000000) { // Reasonable population range
+              maxPop = num;
+            }
+          }
+        }
+        if (maxPop > 100000) {
+          population = maxPop;
+        }
+      }
+      
+      // Parse life expectancy
+      let lifeExpectancy = null;
+      if (lifeExpIdx >= 0 && parts[lifeExpIdx]) {
+        const lifeExpStr = parts[lifeExpIdx].trim();
+        lifeExpectancy = parseFloat(lifeExpStr) || null;
+      }
+      
+        COUNTRIES_DATA.push({
+          id: COUNTRIES_DATA.length + 1,
+        name: countryName,
+          code: code,
+          lat: lat,
+          lon: lon,
+        continent: continent,
+        populationCategory: population === 0 ? 'Unknown' :
+            population > 100000000 ? "Very Large" :
+            population > 50000000 ? "Large" :
+            population > 10000000 ? "Medium" : "Small",
+        populationNumber: population || null,
+        populationRaw: population ? population.toLocaleString() : '',
+          capital: capital || '',
+        largestCity: largestCity || capital || '',
+          lifeExpectancy: lifeExpectancy,
+          officialLanguage: officialLanguage || '',
+        gdp: '',
+          currency: currency || '',
+          region: getRegion(lat, lon),
+          borders: 0
+        });
+    }
+    
+    console.log(`✓ Loaded ${COUNTRIES_DATA.length} countries from CSV file`);
+    console.log("First 3 countries:", COUNTRIES_DATA.slice(0, 3));
+    
+    if (COUNTRIES_DATA.length === 0) {
+      alert('No countries loaded from CSV file! Please check the file format.');
+      return;
+    }
+    
+    // Filter valid mystery countries
+    VALID_MYSTERY_COUNTRIES = COUNTRIES_DATA.filter(c =>
+      c.lat && c.lon &&
+      c.capital && c.capital.length > 0 &&
+      c.populationNumber && c.populationNumber > 500000 &&
+      c.continent !== "Unknown"
+    );
+
+    console.log("Example from valid mystery pool:", VALID_MYSTERY_COUNTRIES[0]);
+    console.log("Total countries:", COUNTRIES_DATA.length);
+    console.log("Valid mystery pool:", VALID_MYSTERY_COUNTRIES.length);
+    
+    // Set up search listeners after data is loaded
+    setupSearchListeners();
+
+    startGame();
+    
+  } catch (error) {
+    console.error("Failed to load countries from CSV:", error);
+    alert("Failed to load country data from CSV file: " + error.message);
+  }
+  
+}
+// Reset timer/guess mode
+stopTimer();
+if (gameMode === 'timer') {
+    startTimer();
+} else {
+    document.getElementById('gameLabel').textContent = '10 guesses left';
+}
+
+// Initialize the game
+
+
+getCountriesData();
+
+// Parse CSV line handling quoted fields with commas
+function parseCSVLine(line) {
+  const result = [];
+  let current = '';
+  let inQuotes = false;
+  
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    const nextChar = line[i + 1];
+    
+    if (char === '"') {
+      if (inQuotes && nextChar === '"') {
+        current += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (char === ',' && !inQuotes) {
+      result.push(current.trim());
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  
+  result.push(current.trim());
+  return result;
+}
+// Get continent based on coordinates (approximate)
+function getContinent(lat, lon) {
+  if (lat > 35 && lon > -30 && lon < 60) return "Europe";
+  if (lat > -35 && lat < 40 && lon > 25 && lon < 60) return "Africa";
+  if (lat > -10 && lat < 80 && lon > 60) return "Asia";
+  if (lat > 15 && lon > -170 && lon < -30) return "North America";
+  if (lat < 15 && lat > -60 && lon > -90 && lon < -30) return "South America";
+  if (lat < -10 && lon > 110) return "Oceania";
+  return "Unknown";
+}
+
+// Get region based on coordinates (approximate)
+function getRegion(lat, lon) {
+  if (lat > 45 && lon > -30 && lon < 60) return "Northern Europe";
+  if (lat > 35 && lat <= 45 && lon > -10 && lon < 30) return "Southern Europe";
+  if (lat > 45 && lon > -10 && lon < 30) return "Western Europe";
+  if (lat > 35 && lon > 30 && lon < 60) return "Eastern Europe";
+  if (lat > 0 && lat < 40 && lon > 25 && lon < 60) return "Northern Africa";
+  if (lat < 0 && lon > 25 && lon < 60) return "Southern Africa";
+  if (lat > 30 && lon > 60 && lon < 150) return "Eastern Asia";
+  if (lat > 0 && lat < 30 && lon > 60 && lon < 100) return "Southern Asia";
+  if (lat > 0 && lat < 30 && lon > 100 && lon < 150) return "South-Eastern Asia";
+  if (lat > 30 && lon > -130 && lon < -60) return "Northern America";
+  if (lat > 0 && lat < 30 && lon > -120 && lon < -60) return "Central America";
+  if (lat < 0 && lon > -90 && lon < -30) return "South America";
+  if (lat < -10 && lon > 110) return "Australia and New Zealand";
+  return "Unknown";
+}
+
+// Select daily country
+function selectDailyCountry(dateString, countries) {
+  let hash = 0;
+  for (let i = 0; i < dateString.length; i++) {
+    hash = ((hash << 5) - hash) + dateString.charCodeAt(i);
+    hash = hash & hash;
+  }
+  const index = Math.abs(hash) % countries.length;
+  return countries[index];
+}
+
+// Get landmark image data for a country from landmarks-data.js
+// Handles both formats: "United Kingdom" and "United_Kingdom"
+function getLandmarkImage(countryName) {
+  // First check if COUNTRY_LANDMARK_IMAGES exists from landmarks-data.js
+  if (typeof COUNTRY_LANDMARK_IMAGES !== 'undefined') {
+    // Try exact match first
+    let countryKey = Object.keys(COUNTRY_LANDMARK_IMAGES).find(
+      key => key.toLowerCase() === countryName.toLowerCase()
+    );
+    
+    // If not found, try with underscores (e.g., "United Kingdom" -> "United_Kingdom")
+    if (!countryKey) {
+      const underscoreKey = countryName.replace(/\s+/g, '_');
+      countryKey = Object.keys(COUNTRY_LANDMARK_IMAGES).find(
+        key => key.toLowerCase() === underscoreKey.toLowerCase()
+      );
+    }
+    
+    // If still not found, try replacing underscores with spaces (e.g., "United_Kingdom" -> "United Kingdom")
+    if (!countryKey) {
+      countryKey = Object.keys(COUNTRY_LANDMARK_IMAGES).find(
+        key => key.replace(/_/g, ' ').toLowerCase() === countryName.toLowerCase()
+      );
+    }
+    
+    if (countryKey) {
+      return COUNTRY_LANDMARK_IMAGES[countryKey];
+    }
+  }
+  
+  return null;
+}
+
+// Get landmark for a country (returns null if not found) - kept for compatibility
+function getLandmarkForCountry(countryName) {
+  const imageData = getLandmarkImage(countryName);
+  if (imageData) {
+    return {
+      name: imageData.landmarkName,
+      description: imageData.description,
+      funFact: imageData.funFact
+    };
+  }
+  
+  // Check if COUNTRY_LANDMARKS_ENHANCED exists (from landmarks-data.js)
+  if (typeof COUNTRY_LANDMARKS_ENHANCED !== 'undefined') {
+    const countryKey = Object.keys(COUNTRY_LANDMARKS_ENHANCED).find(
+      key => key.toLowerCase() === countryName.toLowerCase()
+    );
+    if (countryKey) {
+      return COUNTRY_LANDMARKS_ENHANCED[countryKey];
+    }
+  }
+  
+  // Check if COUNTRY_LANDMARKS exists (fallback)
+  if (typeof COUNTRY_LANDMARKS !== 'undefined') {
+    const countryKey = Object.keys(COUNTRY_LANDMARKS).find(
+      key => key.toLowerCase() === countryName.toLowerCase()
+    );
+    if (countryKey) {
+      return COUNTRY_LANDMARKS[countryKey];
+    }
+  }
+  
+  return null;
+}
+
+// Calculate distance between two points
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return Math.round(R * c);
+}
+
+// Calculate direction between two points
+function calculateDirection(lat1, lon1, lat2, lon2) {
+  // Simple planar direction for flat map (not wrapping)
+  const dLat = lat2 - lat1;
+  const dLon = lon2 - lon1;
+  
+  // Calculate bearing in degrees (0 = North, 90 = East, etc.)
+  const bearing = (Math.atan2(dLon, dLat) * 180 / Math.PI + 360) % 360;
+  
+  const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+  const index = Math.round(bearing / 45) % 8;
+  return directions[index];
+}
+
+// Converts population number into an "over/under" sentence
+function getPopulationHint(population) {
+  if (!population || isNaN(population)) return "Population data unavailable.";
+  
+  // More granular population ranges
+  if (population < 100_000) return "The population is under 100,000.";
+  if (population < 500_000) return "The population is between 100,000 and 500,000.";
+  if (population < 1_000_000) return "The population is between 500,000 and 1 million.";
+  if (population < 2_000_000) return "The population is between 1 and 2 million.";
+  if (population < 5_000_000) return "The population is between 2 and 5 million.";
+  if (population < 10_000_000) return "The population is between 5 and 10 million.";
+  if (population < 20_000_000) return "The population is between 10 and 20 million.";
+  if (population < 50_000_000) return "The population is between 20 and 50 million.";
+  if (population < 100_000_000) return "The population is between 50 and 100 million.";
+  if (population < 500_000_000) return "The population is between 100 and 500 million.";
+  return "The population is over 500 million.";
+}
+
+
+
+// Get hints based on attempt number
+function getHints(attemptNumber) {
+  // Get hints from the COUNTRY_HINTS data file
+  const countryHints = COUNTRY_HINTS[mysteryCountry.name];
+  
+  const hints = {};
+
+  // 2nd guess → Continent
+  if (attemptNumber >= 2 && mysteryCountry.continent && mysteryCountry.continent !== "Unknown") {
+    hints.continent = `The country is in <span class="hint-key">${mysteryCountry.continent}</span>.`;
+  }
+
+  // 4th guess → Subregion
+  if (attemptNumber >= 4 && mysteryCountry.region && mysteryCountry.region !== "Unknown") {
+    hints.region = `It is part of <span class="hint-key">${mysteryCountry.region}</span>.`;
+  }
+
+  // 6th guess → Population (from hints file)
+  if (attemptNumber >= 6 && countryHints && countryHints.population) {
+    hints.population = `The population is <span class="hint-key">${countryHints.population}</span>.`;
+  }
+
+  // 8th guess → Borders (from hints file)
+  if (attemptNumber >= 8 && countryHints && countryHints.borders !== undefined) {
+    if (countryHints.borders === 0) {
+      hints.borders = `This country is an <span class="hint-key">island nation</span> with no land borders.`;
+    } else if (countryHints.borders === 1) {
+      hints.borders = `This country borders <span class="hint-key">1 country</span>.`;
+    } else {
+      hints.borders = `This country borders <span class="hint-key">${countryHints.borders} countries</span>.`;
+    }
+  }
+
+  // 9th guess → First letter of capital (from hints file)
+  if (attemptNumber >= 9 && countryHints && countryHints.capital) {
+    hints.capitalLetter = `The capital city starts with the letter <span class="hint-key">${countryHints.capital[0].toUpperCase()}</span>.`;
+  }
+
+  return hints;
+}
+
+
+
+
+// Handle user guess
+function handleGuess(country) {
+  if (!country) {
+    console.error('handleGuess called with null/undefined country');
+    return;
+  }
+  
+  if (!mysteryCountry) {
+    console.error('mysteryCountry is not set');
+    return;
+  }
+  
+  if (gameState !== 'playing' || guesses.length >= 10) {
+    console.log('Game not in playing state or max guesses reached');
+    return;
+  }
+
+  // Check for duplicate guesses
+  const alreadyGuessed = guesses.some(g => g.country && g.country.id === country.id);
+  if (alreadyGuessed) {
+    console.log('Country already guessed:', country.name);
+    return;
+  }
+
+  console.log('Handling guess for:', country.name, 'Mystery country:', mysteryCountry.name);
+
+  const distance = calculateDistance(
+    country.lat, country.lon,
+    mysteryCountry.lat, mysteryCountry.lon
+  );
+  const direction = calculateDirection(
+    country.lat, country.lon,
+    mysteryCountry.lat, mysteryCountry.lon
+  );
+
+  let color = 'red';
+  if (country.id === mysteryCountry.id) {
+    color = 'green';
+  } else if (distance < 1000 || country.continent === mysteryCountry.continent) {
+    color = 'yellow';
+  }
+
+  const newGuess = {
+    country,
+    distance,
+    direction,
+    color,
+    hints: getHints(guesses.length + 1)
+  };
+
+  guesses.push(newGuess);
+  console.log('Added guess, total guesses:', guesses.length);
+  
+  addMarkerToMap(newGuess);
+  renderGuesses();
+  renderGlobalHints();   // update the Hints card
+
+
+  document.getElementById('searchInput').value = '';
+  document.getElementById('searchResults').classList.add('hidden');
+  const guessesLeft = 10 - guesses.length;
+  if (gameMode === 'guess') {
+    document.getElementById('gameLabel').textContent = guessesLeft === 1 ? '1 guess left' : `${guessesLeft} guesses left`;
+}
+
+  if (country.id === mysteryCountry.id) {
+    gameState = 'won';
+    const currentStreak = parseInt(localStorage.getItem('currentStreak') || '0') + 1;
+    const bestStreak = Math.max(currentStreak, parseInt(localStorage.getItem('bestStreak') || '0'));
+    localStorage.setItem('currentStreak', currentStreak);
+    localStorage.setItem('bestStreak', bestStreak);
+    
+    showGameStatus('won');
+      // Update played and win counts
+    const gamesPlayed = parseInt(localStorage.getItem('gamesPlayed') || '0') + 1;
+    const gamesWon = parseInt(localStorage.getItem('gamesWon') || '0') + 1;
+    localStorage.setItem('gamesPlayed', gamesPlayed);
+    localStorage.setItem('gamesWon', gamesWon);
+
+  } else if (guesses.length >= 10) {
+    gameState = 'lost';
+    localStorage.setItem('currentStreak', '0');
+    showGameStatus('lost');
+    const gamesPlayed = parseInt(localStorage.getItem('gamesPlayed') || '0') + 1;
+    localStorage.setItem('gamesPlayed', gamesPlayed);
+
+  }
+}
+
+// Add marker to map
+// Function to fetch country GeoJSON boundary
+async function fetchCountryBoundary(countryName, countryCode) {
+  try {
+    // Try using REST Countries API for GeoJSON
+    const code = countryCode || countryName.substring(0, 2).toUpperCase();
+    const response = await fetch(`https://restcountries.com/v3.1/name/${encodeURIComponent(countryName)}?fields=name,cca2,cca3`);
+    
+    if (response.ok) {
+      const data = await response.json();
+      if (data && data.length > 0) {
+        const countryCode3 = data[0].cca3 || data[0].cca2;
+        // Use Natural Earth or similar for boundaries
+        // For now, we'll use a simpler approach with Mapbox admin boundaries
+        return countryCode3;
+      }
+    }
+  } catch (error) {
+    console.log('Could not fetch country code:', error);
+  }
+  return null;
+}
+
+function addMarkerToMap(guess) {
+  if (!map) {
+    console.error('Map is not initialized');
+    return;
+  }
+  
+  if (!guess || !guess.country) {
+    console.error('Invalid guess object:', guess);
+    return;
+  }
+  
+  const country = guess.country;
+  
+  if (!country.lat || !country.lon) {
+    console.error('Country missing coordinates:', country);
+    return;
+  }
+  
+  const color = guess.color === 'green' ? '#4ADE80' : 
+               guess.color === 'yellow' ? '#FFE066' : '#F87171';
+  
+  try {
+    // Create a popup
+    const popup = new mapboxgl.Popup({ offset: 25 })
+      .setHTML(`<b>${country.name}</b><br>${guess.distance.toLocaleString()} km ${guess.direction}`);
+    
+    // Create marker with popup
+    const marker = new mapboxgl.Marker({
+    color: color,
+      scale: 1.2
+    })
+      .setLngLat([country.lon, country.lat])
+      .setPopup(popup)
+      .addTo(map);
+    
+    const markerId = `marker-${country.id}-${Date.now()}`;
+    
+    markers.push({
+      marker: marker,
+      markerId: markerId,
+      countryId: country.id,
+      countryName: country.name,
+      remove: function() {
+        if (this.marker) this.marker.remove();
+        // Remove country highlight if exists
+        if (highlightedCountries.has(this.countryId)) {
+          const highlightData = highlightedCountries.get(this.countryId);
+          if (map.getLayer(highlightData.layerId)) map.removeLayer(highlightData.layerId);
+          if (map.getSource(highlightData.sourceId)) map.removeSource(highlightData.sourceId);
+          highlightedCountries.delete(this.countryId);
+        }
+      }
+    });
+    
+    // Try to highlight country polygon
+    highlightCountryPolygon(country, color);
+    
+    console.log('Marker added to map for:', country.name);
+
+    // Zoom to the latest guessed country with smooth animation
+    map.flyTo({
+      center: [country.lon, country.lat],
+      zoom: 4,
+      duration: 1500
+    });
+  } catch (error) {
+    console.error('Error adding marker to map:', error);
+  }
+}
+
+// Function to highlight country polygon
+async function highlightCountryPolygon(country, color) {
+  if (!map.isStyleLoaded()) {
+    map.once('style.load', () => highlightCountryPolygon(country, color));
+    return;
+  }
+  
+  try {
+    // Use Mapbox Boundaries API or fetch from a free GeoJSON source
+    // For now, we'll use a simple approach: fetch from a public GeoJSON API
+    const countryCode = country.code || country.name.substring(0, 2).toUpperCase();
+    
+    // Try to get country boundary from a public API
+    // Using a simplified approach - we'll create a circle around the country center
+    // For full polygon support, you'd need to integrate with a GeoJSON boundary service
+    
+    const sourceId = `country-${country.id}`;
+    const layerId = `country-${country.id}-fill`;
+    
+    // Check if already highlighted
+    if (highlightedCountries.has(country.id)) {
+      return; // Already highlighted
+    }
+    
+    // For now, create a larger circle to represent the country
+    // In production, you'd fetch actual country boundaries from a GeoJSON API
+    const radius = 200000; // 200km radius circle
+    
+    // Create a circle polygon around the country center
+    const circlePoints = [];
+    const numPoints = 64;
+    for (let i = 0; i < numPoints; i++) {
+      const angle = (i / numPoints) * 2 * Math.PI;
+      const latOffset = (radius / 111000) * Math.cos(angle);
+      const lonOffset = (radius / (111000 * Math.cos(country.lat * Math.PI / 180))) * Math.sin(angle);
+      circlePoints.push([country.lon + lonOffset, country.lat + latOffset]);
+    }
+    circlePoints.push(circlePoints[0]); // Close the polygon
+    
+    if (map.getSource(sourceId)) {
+      map.removeSource(sourceId);
+    }
+    
+    map.addSource(sourceId, {
+      type: 'geojson',
+      data: {
+        type: 'Feature',
+        properties: { name: country.name },
+        geometry: {
+          type: 'Polygon',
+          coordinates: [circlePoints]
+        }
+      }
+    });
+    
+    map.addLayer({
+      id: layerId,
+      type: 'fill',
+      source: sourceId,
+      paint: {
+        'fill-color': color,
+        'fill-opacity': 0.3
+      }
+    });
+    
+    map.addLayer({
+      id: layerId + '-outline',
+      type: 'line',
+      source: sourceId,
+      paint: {
+        'line-color': color,
+        'line-width': 2,
+        'line-opacity': 0.8
+      }
+    });
+    
+    highlightedCountries.set(country.id, {
+      sourceId: sourceId,
+      layerId: layerId,
+      outlineLayerId: layerId + '-outline'
+    });
+    
+    console.log('Country polygon highlighted:', country.name);
+  } catch (error) {
+    console.log('Could not highlight country polygon:', error);
+    // Continue without polygon highlighting
+  }
+}
+
+
+// Show game status (won/lost)
+function showGameStatus(status) {
+  if (status === 'won') {
+    // Show victory popup FIRST (before confetti)
+    showVictoryPopup();
+    
+    // Then launch confetti on top
+    setTimeout(() => {
+      try { runConfetti(); } catch(e){ console.warn('Confetti failed', e); }
+    }, 100);
+    
+  } else {
+    // Show loss popup immediately
+    showLossPopup();
+  }
+}
+
+// Show victory popup with fun fact
+function showVictoryPopup() {
+  const modal = document.getElementById('victoryModal');
+  const countryNameEl = document.getElementById('victoryCountryName');
+  const funFactEl = document.getElementById('victoryFunFact');
+  const countryImageEl = document.getElementById('victoryCountryImage');
+  const guessCountEl = document.getElementById('victoryGuessCount');
+  const streakEl = document.getElementById('victoryStreak');
+  const winRateEl = document.getElementById('victoryWinRate');
+  
+  // Set country image
+countryImageEl.src = getCountryImageUrl(mysteryCountry.name);
+countryImageEl.alt = mysteryCountry.name;
+
+// REMOVED ERROR HANDLER - let image show even if it fails
+  
+  // Get fun fact from COUNTRY_FUN_FACTS (primary) or landmarks data (fallback)
+  let funFact = null;
+  
+  // Try COUNTRY_FUN_FACTS first
+  if (typeof COUNTRY_FUN_FACTS !== 'undefined' && COUNTRY_FUN_FACTS[mysteryCountry.name]) {
+    funFact = COUNTRY_FUN_FACTS[mysteryCountry.name];
+  }
+  // Fallback to landmarks data
+  else if (typeof COUNTRY_LANDMARK_IMAGES !== 'undefined') {
+    const landmarkData = getLandmarkImage(mysteryCountry.name);
+    if (landmarkData && landmarkData.funFact) {
+      funFact = landmarkData.funFact;
+    }
+  }
+  
+  // Set the fun fact or use generic message
+  if (funFact) {
+    funFactEl.textContent = funFact;
+  } else {
+    funFactEl.textContent = `Did you know that ${mysteryCountry.name} is a fascinating country with rich history and culture!`;
+  }
+  
+  // Calculate stats
+  const gamesPlayed = parseInt(localStorage.getItem('gamesPlayed') || '1');
+  const gamesWon = parseInt(localStorage.getItem('gamesWon') || '1');
+  const currentStreak = parseInt(localStorage.getItem('currentStreak') || '1');
+  const winRate = gamesPlayed > 0 ? Math.round((gamesWon / gamesPlayed) * 100) : 100;
+  
+  // Update modal content
+  countryNameEl.textContent = mysteryCountry.name;
+  guessCountEl.textContent = guesses.length;
+  streakEl.textContent = currentStreak;
+  winRateEl.textContent = winRate + '%';
+  
+  // Show modal with animation
+  modal.classList.remove('hidden');
+  modal.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+}
+
+// Show loss popup with fun fact
+function showLossPopup() {
+  const modal = document.getElementById('lossModal');
+  const countryNameEl = document.getElementById('lossCountryName');
+  const funFactEl = document.getElementById('lossFunFact');
+  const countryImageEl = document.getElementById('lossCountryImage');
+  const guessCountEl = document.getElementById('lossGuessCount');
+  const streakEl = document.getElementById('lossStreak');
+  const winRateEl = document.getElementById('lossWinRate');
+  
+// Set country image
+  countryImageEl.src = getCountryImageUrl(mysteryCountry.name);
+  countryImageEl.alt = mysteryCountry.name;
+  
+  // Add error handling for image loading
+  countryImageEl.onerror = function() {
+    this.src = 'tryagain.svg';
+  };
+  
+  // Get fun fact from COUNTRY_FUN_FACTS (primary) or landmarks data (fallback)
+  let funFact = null;
+  
+  // Try COUNTRY_FUN_FACTS first
+  if (typeof COUNTRY_FUN_FACTS !== 'undefined' && COUNTRY_FUN_FACTS[mysteryCountry.name]) {
+    funFact = COUNTRY_FUN_FACTS[mysteryCountry.name];
+  }
+  // Fallback to landmarks data
+  else if (typeof COUNTRY_LANDMARK_IMAGES !== 'undefined') {
+    const landmarkData = getLandmarkImage(mysteryCountry.name);
+    if (landmarkData && landmarkData.funFact) {
+      funFact = landmarkData.funFact;
+    }
+  }
+  
+  // Set the fun fact or use generic message
+  if (funFact) {
+    funFactEl.textContent = funFact;
+  } else {
+    funFactEl.textContent = `Did you know that ${mysteryCountry.name} is a fascinating country with rich history and culture!`;
+  }
+  
+  // Calculate stats
+  const gamesPlayed = parseInt(localStorage.getItem('gamesPlayed') || '1');
+  const gamesWon = parseInt(localStorage.getItem('gamesWon') || '0');
+  const currentStreak = 0; // Lost, so streak is 0
+  const winRate = gamesPlayed > 0 ? Math.round((gamesWon / gamesPlayed) * 100) : 0;
+  
+  // Update modal content
+  countryNameEl.textContent = mysteryCountry.name;
+  guessCountEl.textContent = guesses.length;
+  streakEl.textContent = currentStreak;
+  winRateEl.textContent = winRate + '%';
+  
+  // Show modal with animation
+  modal.classList.remove('hidden');
+  modal.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+}
+
+// Convert direction letters (N, NE, etc.) to arrow emojis
+function getDirectionArrow(dir) {
+  const arrows = {
+    N: "⬆️",
+    NE: "↗️",
+    E: "➡️",
+    SE: "↘️",
+    S: "⬇️",
+    SW: "↙️",
+    W: "⬅️",
+    NW: "↖️"
+  };
+  // Return arrow with neutral light-gray color
+  return arrows[dir]
+    ? `<span style="color:#e6e6e6; font-size:1.1em;">${arrows[dir]}</span>`
+    : "";
+}
+
+// Render guesses list
+// Render guesses list
+// Render global hints (shared mystery-country hints)
+// Render global hints (shared mystery-country hints)
+// Render global hints (shared mystery-country hints)
+// Render global hints (shared mystery-country hints)
+function renderGlobalHints() {
+  const hintsContainer = document.getElementById("globalHints");
+  const attemptNumber = guesses.length;
+  const hints = getHints(attemptNumber);
+
+  // Get all hint values as array
+  const hintValues = Object.values(hints);
+  
+  // if no hints yet
+  if (hintValues.length === 0) {
+    hintsContainer.innerHTML = `<li class="text-gray-400">No hints yet. Start guessing!</li>`;
+    return;
+  }
+
+  // Count how many hints are already displayed (excluding the placeholder and animating ones)
+  const existingHints = hintsContainer.querySelectorAll('li.hint-container').length;
+  
+  // Clear the "no hints" placeholder if this is the first real hint
+  if (existingHints === 0 && hintsContainer.innerHTML.includes('No hints yet')) {
+    hintsContainer.innerHTML = '';
+  }
+  
+  // Only animate NEW hints (ones that weren't there before)
+  if (existingHints < hintValues.length) {
+    // Add only the new hint(s)
+    for (let i = existingHints; i < hintValues.length; i++) {
+      const hint = hintValues[i];
+      
+      const li = document.createElement('li');
+      li.className = 'hint-container text-gray-300 text-sm mb-2 animating';
+      
+      // Style the hint with bold orange keywords
+      const styledHint = styleHint(hint);
+      
+      li.innerHTML = `<span class="hint-item typing">${styledHint}</span>`;
+      hintsContainer.appendChild(li);
+
+      // Remove typing cursor and animation flag after animation completes
+      setTimeout(() => {
+        const hintSpan = li.querySelector('.hint-item');
+        if (hintSpan) {
+          hintSpan.classList.remove('typing');
+        }
+        li.classList.remove('animating');
+      }, 3000); // 3 seconds for animation
+    }
+  }
+}
+
+// Helper function to style hints with bold orange text for key information
+// Helper function to style hints with bold orange text for key information
+function styleHint(hint) {
+  // Define patterns to highlight in bold orange
+  const patterns = [
+    // Continents
+    { regex: /(Africa|Europe|Asia|North America|South America|Oceania|Antarctica)/gi, 
+      replace: '<strong class="hint-key">$1</strong>' },
+    
+    // Regions (more comprehensive)
+    { regex: /(Northern Europe|Southern Europe|Western Europe|Eastern Europe|Central Europe|Northern Africa|Southern Africa|Eastern Africa|Western Africa|Central Africa|Eastern Asia|Southern Asia|South-Eastern Asia|Southeast Asia|Western Asia|Central Asia|Northern America|Central America|South America|Caribbean|Australia and New Zealand|Polynesia|Melanesia|Micronesia)/gi,
+      replace: '<strong class="hint-key">$1</strong>' },
+    
+    // Population phrases - "over X million/billion"
+    { regex: /(over|under|above|below|more than|less than|approximately|around)\s+(\d+(?:\.\d+)?)\s*(million|billion)/gi,
+      replace: '$1 <strong class="hint-key">$2 $3</strong>' },
+    
+    // Just numbers with million/billion
+    { regex: /(\d+(?:\.\d+)?)\s*(million|billion)/gi,
+      replace: '<strong class="hint-key">$1 $2</strong>' },
+    
+    // Currency codes (3 letter uppercase codes)
+    { regex: /\b([A-Z]{3})\b/g,
+      replace: '<strong class="hint-key">$1</strong>' },
+    
+    // Languages (expanded list)
+    { regex: /(English|Spanish|French|German|Portuguese|Arabic|Chinese|Mandarin|Cantonese|Hindi|Russian|Japanese|Korean|Italian|Dutch|Swedish|Norwegian|Danish|Finnish|Polish|Turkish|Greek|Hebrew|Swahili|Thai|Vietnamese|Indonesian|Malay|Tagalog|Bengali|Urdu|Persian|Farsi|Amharic|Somali|Zulu|Xhosa|Afrikaans|Czech|Romanian|Hungarian|Ukrainian|Serbian|Croatian|Bulgarian|Slovak|Slovenian|Lithuanian|Latvian|Estonian|Albanian|Macedonian|Bosnian|Icelandic|Maltese|Irish|Welsh|Scottish Gaelic|Basque|Catalan|Galician)/gi,
+      replace: '<strong class="hint-key">$1</strong>' },
+    
+    // Directional words
+    { regex: /(northern|southern|eastern|western|central|north|south|east|west)/gi,
+      replace: '<strong class="hint-key">$1</strong>' },
+    
+    // Country descriptors
+    { regex: /(landlocked|coastal|island|peninsula|archipelago)/gi,
+      replace: '<strong class="hint-key">$1</strong>' },
+  ];
+
+  let styledHint = hint;
+  
+  // Apply each pattern in order
+  patterns.forEach(pattern => {
+    styledHint = styledHint.replace(pattern.regex, pattern.replace);
+  });
+
+  return styledHint;
+}
+
+// Render guesses list
+function renderGuesses() {
+  const container = document.getElementById('guessesContainer');
+  const list = document.getElementById('guessesList');
+  
+  if (guesses.length > 0) {
+    list.classList.remove('hidden');
+  }
+
+  
+
+  // Render in reverse order (latest guess first)
+  container.innerHTML = [...guesses].reverse().map((guess, idx) => {
+    const bgColor = guess.color === 'green' ? 'border-[#4ADE80] text-[#4ADE80] bg-[#4ADE80]/10' :
+                 guess.color === 'yellow' ? 'border-[#FFE066] text-[#FFE066] bg-[#FFE066]/10' :
+                 'border-[#F87171] text-[#F87171] bg-[#F87171]/10';
+
+    return `
+      <div class="p-4 rounded-xl border-2 ${bgColor} transition-all hover:scale-[1.02] hover:shadow-lg">
+        <div class="font-semibold text-base mb-3 flex items-center gap-2">
+          <span class="material-icons text-lg">place</span>
+          <span>${guess.country.name}</span>
+        </div>
+        <div class="grid grid-cols-2 gap-3 text-sm">
+          <div class="flex items-center gap-2">
+            <span class="material-icons text-base opacity-70">straighten</span>
+            <div>
+              <span class="text-gray-400 text-xs block">Distance</span>
+              <span class="font-medium">${guess.distance.toLocaleString()} km</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="material-icons text-base opacity-70">explore</span>
+            <div>
+              <span class="text-gray-400 text-xs block">Direction</span>
+              <span class="font-medium">${guess.direction} ${getDirectionArrow(guess.direction)}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Update global hints separately
+  
+}
+// Timer Mode Functions
+function startTimer() {
+    clearInterval(timerInterval);
+    timerSeconds = 180; // Reset to 5 minutes
+    updateTimerDisplay();
+    
+    timerInterval = setInterval(() => {
+        timerSeconds--;
+        updateTimerDisplay();
+        
+        if (timerSeconds <= 0) {
+            clearInterval(timerInterval);
+            gameState = 'lost';
+            showGameStatus('lost');
+        }
+    }, 1000);
+}
+
+function updateTimerDisplay() {
+    const minutes = Math.floor(timerSeconds / 60);
+    const seconds = timerSeconds % 60;
+    const display = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    document.getElementById('gameLabel').textContent = display;
+}
+
+function stopTimer() {
+    clearInterval(timerInterval);
+}
+
+
+// Start game
+// Start game
+function startGame() {
+  const today = new Date().toDateString();
+  
+  // Ensure we have valid countries
+  if (!VALID_MYSTERY_COUNTRIES || VALID_MYSTERY_COUNTRIES.length === 0) {
+    console.error("No valid mystery countries available!");
+    alert("Error: No countries loaded. Please refresh the page.");
+    return;
+  }
+  
+  // ✅ MANUAL COUNTRY SELECTION FOR TESTING
+  // Set specific countries for Dec 10 and Dec 11, 2025
+  const manualCountries = {
+    'Wed Dec 10 2025': 'Philippines',      // Change 'France' to any country name
+    'Thu Dec 11 2025': 'Japan'        // Change 'Japan' to any country name
+  };
+  
+  // Check if today has a manual override
+  if (manualCountries[today]) {
+    const countryName = manualCountries[today];
+    mysteryCountry = VALID_MYSTERY_COUNTRIES.find(c => 
+      c.name.toLowerCase() === countryName.toLowerCase()
+    );
+    
+    if (!mysteryCountry) {
+      console.error(`Manual country "${countryName}" not found! Using random selection.`);
+      mysteryCountry = selectDailyCountry(today, VALID_MYSTERY_COUNTRIES);
+    } else {
+      console.log(`✅ Using MANUAL country for ${today}: ${mysteryCountry.name}`);
+    }
+  } else {
+    // After Dec 11, use normal random selection
+    console.log(`🎲 Using RANDOM country selection for ${today}`);
+    
+    // Filter eligible countries
+    const eligibleCountries = VALID_MYSTERY_COUNTRIES.filter(c => {
+      const notExcluded = !EXCLUDED_FROM_DAILY.includes(c.name);
+      const hasLandmark = getLandmarkForCountry(c.name) !== null;
+      const hasPopulation = !c.populationNumber || c.populationNumber > 1000000;
+      const hasValidLocation = c.lat && c.lon && c.capital && c.capital.length > 0;
+      return notExcluded && hasValidLocation && (hasLandmark || hasPopulation);
+    });
+    
+    if (eligibleCountries.length === 0) {
+      console.warn("No eligible countries with landmarks, trying without landmark requirement");
+      const fallback1 = VALID_MYSTERY_COUNTRIES.filter(c => 
+        !EXCLUDED_FROM_DAILY.includes(c.name) && 
+        c.lat && c.lon && 
+        c.capital && c.capital.length > 0
+      );
+      
+      if (fallback1.length > 0) {
+        mysteryCountry = selectDailyCountry(today, fallback1);
+      } else {
+        console.warn("No eligible countries found, using all valid countries");
+        mysteryCountry = selectDailyCountry(today, VALID_MYSTERY_COUNTRIES);
+      }
+    } else {
+      mysteryCountry = selectDailyCountry(today, eligibleCountries);
+    }
+  }
+  
+  if (!mysteryCountry) {
+    console.error("Failed to select mystery country!");
+    mysteryCountry = VALID_MYSTERY_COUNTRIES[0];
+    console.log("Using first valid country as fallback:", mysteryCountry);
+  }
+  
+  console.log("Today's mystery country:", mysteryCountry);
+  console.log("Mystery country details:", {
+    name: mysteryCountry.name,
+    id: mysteryCountry.id,
+    lat: mysteryCountry.lat,
+    lon: mysteryCountry.lon,
+    continent: mysteryCountry.continent,
+    capital: mysteryCountry.capital,
+    population: mysteryCountry.populationNumber
+  });
+  
+  guesses = [];
+  gameState = 'playing';
+  if (markers && markers.length > 0) {
+    markers.forEach(m => {
+      if (m.remove) m.remove();
+      else if (m.marker) m.marker.remove();
+    });
+  }
+  markers = [];
+  
+  // Clear highlighted countries
+  highlightedCountries.forEach((data, countryId) => {
+    if (map.getLayer(data.layerId)) map.removeLayer(data.layerId);
+    if (map.getLayer(data.outlineLayerId)) map.removeLayer(data.outlineLayerId);
+    if (map.getSource(data.sourceId)) map.removeSource(data.sourceId);
+  });
+  highlightedCountries.clear();
+  
+  document.getElementById('gameStatus').classList.add('hidden');
+  document.getElementById('searchContainer').classList.remove('hidden');
+  document.getElementById('guessesList').classList.add('hidden');
+  document.getElementById('gameLabel').textContent = '10 guesses left';
+}
+
+// Search input event listeners - set up after DOM is ready
+function setupSearchListeners() {
+const searchInput = document.getElementById('searchInput');
+const searchResults = document.getElementById('searchResults');
+  
+  if (!searchInput || !searchResults) {
+    console.error('Search elements not found, retrying in 100ms...');
+    setTimeout(setupSearchListeners, 100);
+    return;
+  }
+  
+  console.log('Setting up search listeners, searchInput:', searchInput, 'searchResults:', searchResults);
+
+searchInput.addEventListener('input', (e) => {
+  const term = e.target.value.toLowerCase();
+
+  // Hide dropdown if input empty
+  if (term.length === 0) {
+    searchResults.classList.add('hidden');
+    searchResults.innerHTML = '';
+    return;
+  }
+
+  // Check if COUNTRIES_DATA is loaded
+  if (!COUNTRIES_DATA || COUNTRIES_DATA.length === 0) {
+    console.warn('COUNTRIES_DATA not loaded yet');
+    searchResults.classList.add('hidden');
+    searchResults.innerHTML = '';
+    return;
+  }
+
+  // Filter countries (skip already guessed ones)
+  const filtered = COUNTRIES_DATA.filter(c =>
+    c.name && c.name.toLowerCase().includes(term) &&
+    !guesses.find(g => g.country && g.country.id === c.id)
+  ).slice(0, 8);
+
+  // If no matches, hide
+  if (filtered.length === 0) {
+    searchResults.classList.add('hidden');
+    searchResults.innerHTML = '';
+    return;
+  }
+
+
+  // Inside setupSearchListeners() function, find the searchInput.addEventListener('input', ...) section
+
+const html = filtered.map(country => {
+  if (!country.id) {
+    console.warn('Country missing ID:', country);
+    return '';
+  }
+  return `
+    <button
+      type="button"
+      class="w-full px-4 py-3 text-left flex items-center gap-2 border-b border-gray-700 cursor-pointer country-search-btn"
+      data-country-id="${country.id}"
+      style="background-color: #232026 !important;"
+    >
+      <span class="font-medium text-gray-100">${country.name}</span>
+      <span class="text-sm text-gray-400 ml-auto">${country.continent}</span>
+    </button>
+  `;
+}).filter(h => h).join('');
+  searchResults.innerHTML = html;
+  searchResults.classList.remove('hidden');
+  console.log('Dropdown shown with', filtered.length, 'countries. First country ID:', filtered[0]?.id);
+});
+
+searchInput.addEventListener('focus', () => {
+  if (searchInput.value.length > 0) {
+    const event = new Event('input');
+    searchInput.dispatchEvent(event);
+  }
+});
+
+// Handle Enter key to submit country guess
+searchInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    const term = searchInput.value.trim().toLowerCase();
+    
+    if (term.length === 0) return;
+    
+    // Check if COUNTRIES_DATA is loaded
+    if (!COUNTRIES_DATA || COUNTRIES_DATA.length === 0) {
+      console.warn('COUNTRIES_DATA not loaded yet');
+      return;
+    }
+    
+    // Find exact match first
+    const exactMatch = COUNTRIES_DATA.find(c => 
+      c.name && c.name.toLowerCase() === term &&
+      !guesses.find(g => g.country && g.country.id === c.id)
+    );
+    
+    if (exactMatch) {
+      selectCountry(exactMatch);
+      return;
+    }
+    
+    // If no exact match, try to find first partial match from dropdown
+    const filtered = COUNTRIES_DATA.filter(c =>
+      c.name && c.name.toLowerCase().includes(term) &&
+      !guesses.find(g => g.country && g.country.id === c.id)
+    );
+    
+    if (filtered.length > 0) {
+      selectCountry(filtered[0]);
+    }
+  }
+});
+
+// Handle country selection from dropdown - use event delegation
+// This must be set up BEFORE the document click handler
+searchResults.addEventListener('click', (e) => {
+  console.log('searchResults clicked, target:', e.target, 'currentTarget:', e.currentTarget);
+  
+  // Find the button (could be clicked directly or on a child element)
+  const button = e.target.closest('button[data-country-id]');
+  console.log('Found button:', button, 'dataset:', button?.dataset);
+  
+  if (button) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const countryId = parseInt(button.dataset.countryId);
+    console.log('Country button clicked, ID:', countryId, 'isNaN:', isNaN(countryId));
+    
+    if (isNaN(countryId)) {
+      console.error('Invalid country ID:', button.dataset.countryId);
+      return;
+    }
+    
+    if (!COUNTRIES_DATA || COUNTRIES_DATA.length === 0) {
+      console.error('COUNTRIES_DATA not loaded');
+      return;
+    }
+    
+    console.log('Looking for country with ID:', countryId);
+    console.log('Sample IDs in COUNTRIES_DATA:', COUNTRIES_DATA.slice(0, 5).map(c => c.id));
+    
+    const country = COUNTRIES_DATA.find(c => c.id === countryId);
+    if (country) {
+      console.log('Found country:', country.name, country);
+    selectCountry(country);
+    } else {
+      console.error('Country not found with ID:', countryId);
+      console.log('Available countries:', COUNTRIES_DATA.slice(0, 10).map(c => ({ id: c.id, name: c.name })));
+    }
+    return; // Stop propagation
+  } else {
+    console.log('No button found, clicked element:', e.target.tagName, e.target.className);
+  }
+});
+
+// Close dropdown when clicking outside - use capture phase to run AFTER button click
+document.addEventListener('click', (e) => {
+  if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+    searchResults.classList.add('hidden');
+  }
+}, true); // Use capture phase
+
+} // End of setupSearchListeners function
+
+
+function selectCountry(country) {
+  console.log('selectCountry called with:', country);
+  
+  if (!country) {
+    console.error('selectCountry called with null/undefined country');
+    return;
+  }
+  
+  if (!country.id || !country.name || !country.lat || !country.lon) {
+    console.error('Invalid country object:', country);
+    return;
+  }
+  
+  // Hide dropdown and clear input FIRST
+  const results = document.getElementById('searchResults');
+  const input = document.getElementById('searchInput');
+  
+  if (results) {
+  results.classList.add('hidden');
+  results.innerHTML = '';
+  }
+  if (input) {
+  input.value = '';
+  input.blur();
+  }
+  
+  // Then handle the guess
+  console.log('Selecting country:', country.name, 'ID:', country.id, 'Coords:', country.lat, country.lon);
+  handleGuess(country);
+}
+
+
+// Initialize everything
+(function(){
+  const btn = document.getElementById('howBtn');
+  const modal = document.getElementById('howModal');
+  const closeBtn = document.getElementById('howCloseBtn');
+
+  function open(){
+    if(!modal) return;
+    modal.classList.remove('hidden');
+    modal.setAttribute('aria-hidden','false');
+    if(btn) btn.setAttribute('aria-expanded','true');
+    // prevent body scroll while modal is open
+    document.body.style.overflow = 'hidden';
+    // focus the close button
+    if(closeBtn) closeBtn.focus();
+  }
+
+  function close(){
+    if(!modal) return;
+    modal.classList.add('hidden');
+    modal.setAttribute('aria-hidden','true');
+    if(btn) btn.setAttribute('aria-expanded','false');
+    document.body.style.overflow = '';
+    if(btn) btn.focus();
+  }
+
+  if(btn){
+    btn.addEventListener('click', (e)=>{
+      open();
+    });
+  }
+
+  if(closeBtn){
+    closeBtn.addEventListener('click', (e)=>{
+      close();
+    });
+  }
+
+  // Close when clicking backdrop (modal element) but not when clicking the dialog
+  if(modal){
+    modal.addEventListener('click', (e)=>{
+      if(e.target === modal) close();
+    });
+  }
+
+  // Close on Escape
+  document.addEventListener('keydown', (e)=>{
+    if(e.key === 'Escape' && modal && !modal.classList.contains('hidden')){
+      close();
+    }
+  });
+})();
+
+// Stats modal functionality
+(function(){
+  const btn = document.getElementById('statsBtn');
+  const modal = document.getElementById('statsModal');
+  const closeBtn = document.getElementById('statsCloseBtn');
+
+  function open(){
+    if(!modal) return;
+    // Update stats from localStorage
+    const currentStreak = parseInt(localStorage.getItem('currentStreak') || '0');
+    const bestStreak = parseInt(localStorage.getItem('bestStreak') || '0');
+    const gamesPlayed = parseInt(localStorage.getItem('gamesPlayed') || '0');
+    const gamesWon = parseInt(localStorage.getItem('gamesWon') || '0');
+    const winPercent = gamesPlayed > 0 ? Math.round((gamesWon / gamesPlayed) * 100) : 0;
+
+    document.getElementById('statsPlayed').textContent = gamesPlayed;
+    document.getElementById('statsWinPercent').textContent = winPercent;
+    document.getElementById('statsCurrentStreak').textContent = currentStreak;
+    document.getElementById('statsBestStreak').textContent = bestStreak;
+
+    
+    modal.classList.remove('hidden');
+    modal.setAttribute('aria-hidden','false');
+    if(btn) btn.setAttribute('aria-expanded','true');
+    document.body.style.overflow = 'hidden';
+    if(closeBtn) closeBtn.focus();
+  }
+
+  function close(){
+    if(!modal) return;
+    modal.classList.add('hidden');
+    modal.setAttribute('aria-hidden','true');
+    if(btn) btn.setAttribute('aria-expanded','false');
+    document.body.style.overflow = '';
+    if(btn) btn.focus();
+  }
+
+  if(btn){
+    btn.addEventListener('click', (e)=>{
+      open();
+    });
+  }
+
+  if(closeBtn){
+    closeBtn.addEventListener('click', (e)=>{
+      close();
+    });
+  }
+
+  if(modal){
+    modal.addEventListener('click', (e)=>{
+      if(e.target === modal) close();
+    });
+  }
+
+  document.addEventListener('keydown', (e)=>{
+    if(e.key === 'Escape' && modal && !modal.classList.contains('hidden')){
+      close();
+    }
+  });
+})();
+
+
+// Reset stats functionality
+document.getElementById('resetStatsBtn').addEventListener('click', function() {
+  if (confirm('Are you sure you want to reset all statistics? This cannot be undone.')) {
+    localStorage.setItem('gamesPlayed', '0');
+    localStorage.setItem('gamesWon', '0');
+    localStorage.setItem('currentStreak', '0');
+    localStorage.setItem('bestStreak', '0');
+    
+    // Update the display
+    document.getElementById('statsPlayed').textContent = '0';
+    document.getElementById('statsWinPercent').textContent = '0';
+    document.getElementById('statsCurrentStreak').textContent = '0';
+    document.getElementById('statsBestStreak').textContent = '0';
+    
+    alert('Statistics have been reset!');
+  }
+});
+
+// Victory modal close functionality
+(function(){
+  const modal = document.getElementById('victoryModal');
+  const closeBtn = document.getElementById('victoryCloseBtn');
+
+  function close(){
+    if(!modal) return;
+    modal.classList.add('hidden');
+    modal.setAttribute('aria-hidden','true');
+    document.body.style.overflow = '';
+  }
+
+  if(closeBtn){
+    closeBtn.addEventListener('click', (e)=>{
+      e.preventDefault();
+      e.stopPropagation();
+      close();
+    });
+  }
+
+  if(modal){
+    modal.addEventListener('click', (e)=>{
+      if(e.target === modal) {
+        e.preventDefault();
+        close();
+      }
+    });
+  }
+
+  document.addEventListener('keydown', (e)=>{
+    if(e.key === 'Escape' && modal && !modal.classList.contains('hidden')){
+      e.preventDefault();
+      close();
+    }
+  });
+})();
+
+// ⬇️⬇️⬇️ ADD LOSS MODAL CLOSE HANDLER HERE ⬇️⬇️⬇️
+// Loss modal close functionality
+(function(){
+  const modal = document.getElementById('lossModal');
+  const closeBtn = document.getElementById('lossCloseBtn');
+
+  function close(){
+    if(!modal) return;
+    modal.classList.add('hidden');
+    modal.setAttribute('aria-hidden','true');
+    document.body.style.overflow = '';
+    // Don't reload page - just close modal
+  }
+
+  if(closeBtn){
+    closeBtn.addEventListener('click', (e)=>{
+      e.preventDefault();
+      e.stopPropagation();
+      close();
+    });
+  }
+
+  if(modal){
+    modal.addEventListener('click', (e)=>{
+      if(e.target === modal) {
+        e.preventDefault();
+        close();
+      }
+    });
+  }
+
+  document.addEventListener('keydown', (e)=>{
+    if(e.key === 'Escape' && modal && !modal.classList.contains('hidden')){
+      e.preventDefault();
+      close();
+    }
+  });
+})();
+// ⬆️⬆️⬆️ END LOSS MODAL CLOSE HANDLER ⬆️⬆️⬆️
+// Mode Toggle Event Listener
+document.getElementById('modeToggle').addEventListener('change', function(e) {
+    gameMode = e.target.checked ? 'timer' : 'guess';
+    
+    if (gameMode === 'timer') {
+        startTimer();
+    } else {
+        stopTimer();
+        const guessesLeft = 10 - guesses.length;
+        document.getElementById('gameLabel').textContent = guessesLeft === 1 ? '1 guess left' : `${guessesLeft} guesses left`;
+    }
+});
+
+getCountriesData();</script>
+
+</body>
+
+</html>
+</html>

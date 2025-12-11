@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Country Images Test - Where in The World</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            background: #1a1625; 
+            color: white; 
+        }
+        h1 {
+            color: #f28f4c;
+            text-align: center;
+        }
+        .summary {
+            background: #232026;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .summary span {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0 20px;
+        }
+        .working-count { color: #4ADE80; }
+        .broken-count { color: #F87171; }
+        
+        .filters {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .filters button {
+            padding: 10px 20px;
+            margin: 0 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .filter-all { background: #667eea; color: white; }
+        .filter-working { background: #4ADE80; color: black; }
+        .filter-broken { background: #F87171; color: white; }
+        
+        .country-test { 
+            margin: 15px 0; 
+            padding: 15px; 
+            border: 2px solid #333; 
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .working { 
+            background: #1a2e1a; 
+            border-color: #4ADE80;
+        }
+        .broken { 
+            background: #2e1a1a; 
+            border-color: #F87171;
+        }
+        
+        .country-info {
+            flex: 1;
+        }
+        .country-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .country-url {
+            font-size: 12px;
+            color: #999;
+            word-break: break-all;
+        }
+        
+        img { 
+            width: 300px; 
+            height: 150px; 
+            object-fit: cover; 
+            display: block;
+            border-radius: 5px;
+        }
+        
+        .status { 
+            font-weight: bold;
+            font-size: 16px;
+            padding: 5px 15px;
+            border-radius: 5px;
+        }
+        .working .status { 
+            background: #4ADE80; 
+            color: black; 
+        }
+        .broken .status { 
+            background: #F87171; 
+            color: white; 
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🌍 Country Images Validator</h1>
+    
+    <div class="summary" id="summary">
+        <div class="loading">Testing images... Please wait...</div>
+    </div>
+    
+    <div class="filters" id="filters" style="display:none;">
+        <button class="filter-all" onclick="filterResults('all')">Show All</button>
+        <button class="filter-working" onclick="filterResults('working')">✅ Working Only</button>
+        <button class="filter-broken" onclick="filterResults('broken')">❌ Broken Only</button>
+    </div>
+    
+    <div id="results"></div>
+    
+    <script>
+        // PASTE YOUR COUNTRY_IMAGES OBJECT HERE
+        const COUNTRY_IMAGES = {
+          // A
+  "Afghanistan": "https://cdn.britannica.com/55/279455-050-FCD9AE8C/Blue-Mosque-Afghanistan-Mazar-e-Sharif.jpg",
+  "Albania": "https://mediaim.expedia.com/destination/1/09d08f73decbcc1d561c446634122c0e.jpg",
+  "Algeria": "https://upload.wikimedia.org/wikipedia/commons/4/44/Dune_de_sable_au_parc_Culturel_De_l%27Ahaggar_crop.jpg",
+  "Andorra": "https://media.hswstatic.com/eyJidWNrZXQiOiJjb250ZW50Lmhzd3N0YXRpYy5jb20iLCJrZXkiOiJnaWZcL2FuZG9ycmEtMS5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOiIxMjAwIn19fQ==",
+  "Angola": "https://upload.wikimedia.org/wikipedia/commons/9/95/Kalandula_waterfalls_of_the_Lucala-River_in_Malange%2C_Angola.JPG",
+  "Argentina": "https://upload.wikimedia.org/wikipedia/commons/1/15/CABA_-_Avenida_9_de_Julio.jpg",
+  "Armenia": "https://i.natgeofe.com/n/fb00dd03-20f5-4128-a2bb-62fbee4d754d/Tatev-Monastery.gif?w=2880&h=2048",
+  "Australia": "https://upload.wikimedia.org/wikipedia/commons/7/7c/Sydney_Opera_House_-_Dec_2008.jpg",
+  "Austria": "https://upload.wikimedia.org/wikipedia/commons/5/54/1_hallstatt_austria.jpg",
+  "Azerbaijan": "https://upload.wikimedia.org/wikipedia/commons/9/9c/Vista_de_Baku%2C_Azerbaiy%C3%A1n%2C_2016-09-26%2C_DD_101-106_PAN.jpg",
+  
+  // B
+  "Bahamas": "https://upload.wikimedia.org/wikipedia/commons/7/75/Blue_Lagoon.JPG",
+  "Bahrain": "https://upload.wikimedia.org/wikipedia/commons/2/2d/Manama%2C_Bahrain_Decembre_2014.jpg",
+  "Bangladesh": "https://i.pinimg.com/736x/69/ad/70/69ad7004e0c6a9bd58123ac41cf04ca6.jpg",
+  "Barbados": "https://upload.wikimedia.org/wikipedia/commons/1/1d/Bathsheba%2C_Barbados_08.jpg",
+  "Belarus": "https://upload.wikimedia.org/wikipedia/commons/4/40/View_of_Minsk_%28180819%29_09.jpg",
+  "Belgium": "https://upload.wikimedia.org/wikipedia/commons/b/b4/Brussels_view_from_Mont_des_Arts%2C_Brussels%2C_Belgium_%28cropped%29.jpg",
+  "Belize": "https://upload.wikimedia.org/wikipedia/commons/7/72/EnglishCayeBelize.jpg",
+  "Benin": "https://upload.wikimedia.org/wikipedia/commons/3/33/Door_of_no_return.jpg",
+  "Bhutan": "https://upload.wikimedia.org/wikipedia/commons/a/a6/Paro_Taktsang%2C_Bhutan_%28edited%29.jpg",
+  "Bolivia": "https://upload.wikimedia.org/wikipedia/commons/0/04/Salar_de_Uyuni_-_World%27s_Largest_Salt_Flats_-_Bolivia_08_%283781885857%29.jpg",
+  "Bosnia and Herzegovina": "https://upload.wikimedia.org/wikipedia/commons/d/d7/Mostar_Old_Town_Panorama_2007.jpg",
+  "Botswana": "https://upload.wikimedia.org/wikipedia/commons/d/d0/Okavango_delta_-_Botswana_-_panoramio.jpg",
+  "Brazil": "https://upload.wikimedia.org/wikipedia/commons/a/ae/Christ_on_Corcovado_mountain.JPG",
+  "Brunei": "https://upload.wikimedia.org/wikipedia/commons/5/59/Sultan_Omar_Ali_Saifuddin_Mosque_02.jpg",
+  "Bulgaria": "https://upload.wikimedia.org/wikipedia/commons/4/46/Rila_Monastery%2C_August_2013.jpg",
+  "Burkina Faso": "https://upload.wikimedia.org/wikipedia/commons/7/7c/Domes_de_Fabedougou_MS_4589.jpg",
+  "Burundi": "https://upload.wikimedia.org/wikipedia/commons/3/31/Fishing_boats_on_Lake_Tanganyika.jpg",
+  
+  // C
+  "Cambodia": "https://upload.wikimedia.org/wikipedia/commons/d/d4/20171126_Angkor_Wat_4712_DxO.jpg",
+  "Cameroon": "https://upload.wikimedia.org/wikipedia/commons/0/08/Mount_Cameroon_2.jpg",
+  "Canada": "https://upload.wikimedia.org/wikipedia/commons/6/6c/1_lake_louise_pano_2019.jpg",
+  "Cape Verde": "https://upload.wikimedia.org/wikipedia/commons/f/fc/Mindelo-Aug2000.jpg",
+  "Central African Republic": "https://upload.wikimedia.org/wikipedia/commons/a/a3/Boali_waterfalls_-_CAR%27s_only_power_plant_%284112150917%29.jpg",
+  "Chad": "https://upload.wikimedia.org/wikipedia/commons/6/67/Chad_Tousside_Trou_au_Natron_2299.jpg",
+  "Chile": "https://upload.wikimedia.org/wikipedia/commons/4/4d/Torres_del_Paine%2C_Laguna_Azul_09.jpg",
+  "China": "https://upload.wikimedia.org/wikipedia/commons/1/10/20090529_Great_Wall_8185.jpg",
+  "Colombia": "https://upload.wikimedia.org/wikipedia/commons/4/40/Valle_de_Cocora%2C_Colombia_03.jpg",
+  "Comoros": "https://upload.wikimedia.org/wikipedia/commons/3/39/Anjouan_-_Islands_of_Comoros.jpg",
+  "Congo": "https://upload.wikimedia.org/wikipedia/commons/1/10/Paysage_du_territoire_de_Masisi_%2828130228449%29.jpg",
+  "Costa Rica": "https://upload.wikimedia.org/wikipedia/commons/5/5a/Arenal_volcano._Costa_Rica.jpg",
+  "Croatia": "https://upload.wikimedia.org/wikipedia/commons/1/1b/Dubrovnik_s_24.jpg",
+  "Cuba": "https://upload.wikimedia.org/wikipedia/commons/4/42/National-Capitol-and-classic-cars-in-Havana-Cuba-225-031-061A.jpg",
+  "Cyprus": "https://upload.wikimedia.org/wikipedia/commons/9/9a/Roca_de_Afrodita%2C_Chipre%2C_2021-12-10%2C_DD_65.jpg",
+  "Czech Republic": "https://upload.wikimedia.org/wikipedia/commons/a/a7/Prague_%286365119737%29.jpg",
+  
+  // D
+  "Denmark": "https://upload.wikimedia.org/wikipedia/commons/8/8a/Nyhavn_Copenhagen_2.jpg",
+  "Djibouti": "https://upload.wikimedia.org/wikipedia/commons/5/5c/Djib_003.JPG",
+  "Dominica": "https://upload.wikimedia.org/wikipedia/commons/a/a0/Emerald_Pool%2C_Dominica.jpg",
+  "Dominican Republic": "https://upload.wikimedia.org/wikipedia/commons/4/45/Cap_Cana_Marina_Dominican_Republic.jpg",
+  
+  // E
+  "Ecuador": "https://upload.wikimedia.org/wikipedia/commons/7/74/V%C3%B3lcan_Cotopaxi.jpg",
+  "Egypt": "https://upload.wikimedia.org/wikipedia/commons/9/96/Pyramids_of_the_Giza_Necropolis.jpg",
+  "El Salvador": "https://upload.wikimedia.org/wikipedia/commons/1/17/Crat%C3%A8re_du_Volcan_de_Santa_Ana%2C_Salvador.jpg",
+  "Equatorial Guinea": "https://upload.wikimedia.org/wikipedia/commons/d/d5/Kathedrale_Santa_Isabel.jpg",
+  "Eritrea": "https://upload.wikimedia.org/wikipedia/commons/6/61/Asmara%2C_cattedrale_cattolica%2C_01.JPG",
+  "Estonia": "https://upload.wikimedia.org/wikipedia/commons/e/ed/Old_Town_of_Tallinn%2C_Tallinn%2C_Estonia_-_panoramio_%2858%29.jpg",
+  "Ethiopia": "https://upload.wikimedia.org/wikipedia/commons/2/2c/Addis_in_night.jpg",
+  
+  // F
+  "Fiji": "https://upload.wikimedia.org/wikipedia/commons/5/5b/2019-02-02_Queens_Rd%2C_Coral_Coast%2C_Fiji.jpg",
+  "Finland": "https://upload.wikimedia.org/wikipedia/commons/e/ec/Bisaj%C3%A4rvi_in_evening_light_from_the_southwest_in_Sipoonkorpi%2C_Vantaa%2C_Finland%2C_2021_May.jpg",
+  "France": "https://upload.wikimedia.org/wikipedia/commons/c/cb/Eiffel_Tower_1%2C_Paris_August_2013.jpg",
+  
+  // G
+  "Gabon": "https://upload.wikimedia.org/wikipedia/commons/f/f3/Gabon_Loango_National_Park_View_of_Lodge_from_water.jpeg",
+  "Gambia": "https://upload.wikimedia.org/wikipedia/commons/3/31/The_Gambia_%28Unsplash%29.jpg",
+  "Georgia": "https://upload.wikimedia.org/wikipedia/commons/a/af/Old_Tbilisi_Panorama_09.23_%282%29.jpg",
+  "Germany": "https://upload.wikimedia.org/wikipedia/commons/a/a6/Brandenburger_Tor_abends.jpg",
+  "Ghana": "https://upload.wikimedia.org/wikipedia/commons/c/cb/Cape_Coast_Castle_Courtyard_02_Sept_2012.jpg",
+  "Greece": "https://upload.wikimedia.org/wikipedia/commons/e/e6/Classic_view_of_Acropolis.jpg",
+  "Grenada": "https://upload.wikimedia.org/wikipedia/commons/4/42/Grenada_%28Grand_Anse_Beach%29_2.JPG",
+  "Guatemala": "https://upload.wikimedia.org/wikipedia/commons/7/75/Tikal_3.jpg",
+  "Guinea": "https://whc.unesco.org/uploads/thumbs/site_0155_0008-1000-750-20200908110250.jpg",
+  "Guinea-Bissau": "https://assets.vogue.com/photos/6414a211cf213f132c5f9b62/master/w_2240,c_limit/GettyImages-1246265851.jpg",
+  "Guyana": "https://exploringkiwis.com/wp-content/uploads/2018/07/RKP-_DSC7521.jpg",
+  
+  // H
+  "Haiti": "https://2017-2021.state.gov/wp-content/uploads/2019/04/Haiti-1.jpg",
+  "Honduras": "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/0f/01/db/fb/view-from-the-cruise.jpg?w=2000&h=-1&s=1",
+  "Hungary": "https://lp-cms-production.imgix.net/2023-03/GettyRF_473481530.jpg?auto=format,compress&q=72&w=1095&fit=crop&crop=faces,edges",
+  
+  // I
+  "Iceland": "https://images.travelandleisureasia.com/wp-content/uploads/sites/2/2024/02/15094131/kirkjufell-1.jpeg?tr=w-1366,f-jpg,pr-true",
+  "India": "https://i.natgeofe.com/k/42e832f5-fd48-43ff-b338-091bdf4048ca/india-tajmahal.jpg?wp=1&w=1084.125&h=609",
+  "Indonesia": "https://cdn.sanity.io/images/nxpteyfv/goguides/15486940194b45347ac5037248d2363d27dec5ad-1600x1066.jpg",
+  "Iran": "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/08/ee/2d/f5/nasir-al-mulk-mosque.jpg?w=2000&h=-1&s=1",
+  "Iraq": "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/01/9b/eb/78/blick-von-der-festung.jpg?w=2400&h=-1&s=1",
+  "Ireland": "https://i0.wp.com/mpaproject.com/wp-content/uploads/2023/07/Cliffs-of-Moher.-MPA-Project-Travels.jpg?fit=2048%2C1152&ssl=1",
+  "Israel": "https://www.reviewofreligions.org/wp-content/uploads/2021/10/shutterstock_228539263-Resized-1.jpg",
+  "Italy": "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/2f/1f/c1/34/caption.jpg?w=1200&h=-1&s=1&cx=1920&cy=1080&chk=v1_19b8fd93573cc10705fb",
+  
+  // J
+  "Jamaica": "https://a.travel-assets.com/findyours-php/viewfinder/images/res70/110000/110115-Boscobel.jpg",
+  "Japan": "https://www.lot.com/content/dam/lot/lot-com/destination-photos/japonia/Tokyo-5%20.coreimg.jpg/1723628368208/Tokyo-5%20.jpg",
+  "Jordan": "https://deih43ym53wif.cloudfront.net/large_petra-jordan-shutterstock_1030695769_93d66c6973.jpeg",
+  
+  // K
+  "Kazakhstan": "https://mediaim.expedia.com/destination/1/28c38c2e9cb6fbfb9366f04bfba41b86.jpg",
+  "Kenya": "https://s3.amazonaws.com/cdn.micato.com/wp-content/uploads/2018/09/07223907/maasai-mara-1110x700.jpg",
+  "Kiribati": "https://www.thoughtco.com/thmb/vzDmlb2PJyV0n8AEGba-dtWXNd8=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/GettyImages-539058418-be0483c5ac0646fbb92662f2685249e7.jpg",
+  "Kosovo": "https://undiscovered-destinations.com/wp-content/uploads/2025/03/Kosovo-Destination.jpg",
+  "Kuwait": "https://statemag.state.gov/wp-content/uploads/2019/10/POM-KUWAIT-18.jpg",
+  "Kyrgyzstan": "https://media.gadventures.com/media-server/dynamic/blogs/posts/G-Adventures/2024/12/Kyrgyzstan_Facts_-_Hero_Image.webp",
+  
+  // L
+  "Laos": "https://blog.butterfield.com/wp-content/uploads/2017/09/laos-2091194_1920-freestock-1600x1000-compressed.png",
+  "Latvia": "https://www.state.gov/wp-content/uploads/2018/11/Latvia-2107x1406.jpg",
+  "Lebanon": "https://statemag.state.gov/wp-content/uploads/2019/07/POM-Beirut-10.jpg",
+  "Lesotho": "https://www.state.gov/wp-content/uploads/2018/11/Lesotho-e1555940558396.jpg",
+  "Liberia": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiR34PAelmX0b6M1ki9O6AGhBTt4ltG7mFawpHoRKYmtpaGwGis_HbgSvvpV_XzL3OiwrnIgKTUYXryhizN9W0-X5sPiGsTiE3AYcYXlGgqX2vp4X5lgvFMlCvci_S4IpwjCtSRoTBySXAUc-5KrMUVW_TBmIddfXCML2BKBIlvN_iR1tiFIpabEKFu/s3840/Liberia-Traveling-72.JPG",
+  "Libya": "https://i.natgeofe.com/k/78c322ca-f4b0-433c-8273-3652cdd7a457/libya-tripoli.jpg",
+  "Liechtenstein": "https://www.mirygiramondo.com/wp-content/uploads/2024/06/castle-7581503_1920.jpg",
+  "Lithuania": "https://ychef.files.bbci.co.uk/2000x1123/p0g1ppj1.jpeg",
+  "Luxembourg": "https://nomadphotographer.com/wp-content/uploads/2025/03/DSC00547-HDR-1536x1025.jpg",
+  
+  // M
+  "Madagascar": "https://www.worldatlas.com/r/w2560-q80/upload/72/6d/f8/shutterstock-1125367931.jpg",
+  "Malawi": "https://yellowzebrasafaris.com/media/41513/nkwichi-canoeing-malawi.jpg?width=2048&height=1024&format=jpg&v=1da5e0f7ccdbf70",
+  "Malaysia": "https://i.natgeofe.com/k/8dc7401d-fac9-43c5-a6d4-d056401f7779/kuala-lumpur.jpg?wp=1&w=1084.125&h=721.875",
+  "Maldives": "https://afar.brightspotcdn.com/dims4/default/ea28eda/2147483647/strip/false/crop/3000x1688+0+275/resize/1200x675!/quality/90/?url=https%3A%2F%2Fk3-prod-afar-media.s3.us-west-2.amazonaws.com%2Fbrightspot%2Fb2%2Ff4%2F9a1ebe3f427f8e5eb937f8df8998%2Ftravelguides-maldives-videomediastudioeurope-shutterstock.jpg",
+  "Mali": "https://www.worldatlas.com/r/w1200/upload/4d/82/37/timbuktu.jpg",
+  "Malta": "https://internationalliving.com/_next/image/?url=https%3A%2F%2Fimages.ctfassets.net%2Fwv75stsetqy3%2F7rTzoyS6NbT9DUhSyb2F9E%2F7b2e47b65e3a5a06f6c3b236b442947b%2FMalta.jpg%3Fq%3D60%26fit%3Dfill%26fm%3Dwebp&w=3840&q=60",
+  "Marshall Islands": "https://paradises.com/wp-content/uploads/2024/03/marshallislands-jpg.webp",
+  "Mauritania": "https://media.hswstatic.com/eyJidWNrZXQiOiJjb250ZW50Lmhzd3N0YXRpYy5jb20iLCJrZXkiOiJnaWZcL3NodXR0ZXJzdG9jay0yMDc0OTQ5Njk1LmpwZyIsImVkaXRzIjp7InJlc2l6ZSI6eyJ3aWR0aCI6IjEyMDAifX19",
+  "Mauritius": "https://mediaim.expedia.com/destination/1/50d5e5b1b6e755d47c464d61650206af.jpg",
+  "Mexico": "https://media.cntraveler.com/photos/5a92f25dc6516a534a5304e9/master/w_1024%2Cc_limit/Metropolitan-Cathedral_GettyImages-115006326.jpg",
+  "Micronesia": "https://statemag.state.gov/wp-content/uploads/2021/06/0721pom-13.jpg",
+  "Moldova": "https://mediaim.expedia.com/destination/1/ea0a63375e6a1e41b15b27b304139c27.jpg",
+  "Monaco": "https://asset.montecarlosbm.com/styles/hero_image_desktop/s3/media/orphea/ca_casino_square_2020_0108.jpg.jpeg?h=83214b8f&itok=G6Zn9TRQ",
+  "Mongolia": "https://2017-2021.state.gov/wp-content/uploads/2019/04/Mongolia-2109x1406.jpg",
+  "Montenegro": "https://www.royalcaribbean.com/media-assets/pmc/content/dam/shore-x/kotor-ktr/kv95-brilliance-of-boka-bay/perast-kotor-montenegro-panoramic-view-from-water-boat-in-crystal-clear-water-and-old-town-in-background.jpg?w=1920",
+  "Morocco": "https://images.contentstack.io/v3/assets/blt06f605a34f1194ff/blt1c1c620107f17f6b/687f9d512a594b6d7878bb31/iStock-475057992-2-HEADER_MOBILE.jpg?format=webp&quality=60&width=1440",
+  "Mozambique": "https://www.africaodyssey.com/site/odyssey-image-proxy/park/bazaruto-archipelago-tailor-made-mozambique-beach-holidays=403005-300.jpg",
+  "Myanmar": "https://cdn.britannica.com/12/61412-050-A4FCE8CE/Ruins-pagodas-shrines-Buddhist-Myanmar-Pagan.jpg",
+  
+  // N
+  "Namibia": "https://www.go2africa.com/wp-content/uploads/2019/09/banner1-1920x630-1.jpg",
+  "Nauru": "https://www.travelandleisure.com/thmb/iuqoDTfWKhgNZDSpjo8B1KxQu9E=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/TAL-nauru-NAURUPASPRT0325-0c475114c47b4d1bbb275e9cf1f4bb10.jpg",
+  "Nepal": "https://www.discovertreks.com/wp-content/uploads/2017/09/Nepal-discover-himalayan-treks.jpg",
+  "Netherlands": "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/2e/b5/0b/4a/caption.jpg?w=1200&h=-1&s=1&cx=1920&cy=1080&chk=v1_1f5914ade620577562b5",
+  "New Zealand": "https://www.moatrek.com/wp-content/uploads/2025/08/milford-sound-travel-guide.png",
+  "Nicaragua": "https://s.abcnews.com/images/GMA/volcano-main-ss-ps-200228_hpMain_16x9_1600.jpg",
+  "Niger": "https://www.palacetravel.com/wp-content/uploads/2020/08/A%C3%AFr-Mountains-of-Niger.jpg",
+  "Nigeria": "https://img.atlasobscura.com/r2ashmTvzk8RqB_ii-FODOVTxR3oBaE7SP4ovkcS6zw/rs:fill:780:520:1/g:ce/q:81/sm:1/scp:1/ar:1/aHR0cHM6Ly9hdGxh/cy1kZXYuczMuYW1h/em9uYXdzLmNvbS91/cGxvYWRzL3BsYWNl/X2ltYWdlcy84MjNk/MDZhMi03NTM3LTQ4/MTgtYWJlMi03OWZm/NWJjYmJiYmQyNzM3/YTYxMzFkNzRmNjEz/M2JfR2V0dHlJbWFn/ZXMtNDgxNjYwOTc5/LmpwZw.jpg",
+  "North Korea": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/PyongYang-Arch_of_Triumph.jpg/2560px-PyongYang-Arch_of_Triumph.jpg",
+  "North Macedonia": "https://galloparoundtheglobe.com/wp-content/uploads/2019/07/Ohrid-featured.jpg",
+  "Norway": "https://assets.micontenthub.com/traveloffers/travel-tips/norway-jpg_C68Dk3_8V.jpg",
+  
+  // O
+  "Oman": "https://blog.onevasco.com/wp-content/uploads/muscat.jpg",
+  
+  // P
+  "Pakistan": "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/0d/d5/1c/94/passu-valley-hunza-valley.jpg?w=800&h=-1&s=1",
+  "Palau": "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/0d/60/1b/d9/a-different-angle-from.jpg?w=1200&h=700&s=1",
+  "Palestine": "https://www.caabu.org/sites/default/files/inline-images/josh-appel-QsU8GRwyS3k-unsplash%20%281%29.jpg",
+  "Panama": "https://mediaim.expedia.com/destination/1/919b43d85bf36a400b3c07d30881f725.jpg",
+  "Papua New Guinea": "https://peakvisor.com/photo/HD/Papua-New-Guinea-panorama-marine-reserve-raja-ampat-new-429392200.jpg",
+  "Paraguay": "https://cdn.gihub.org/umbraco/media/3544/3.jpg",
+  "Peru": "https://cdn.mos.cms.futurecdn.net/WFJBpzs4J5x3uvbeKdnm3i.jpg",
+  "Philippines": "https://i.natgeofe.com/n/04505c35-858b-4e95-a1a7-d72e5418b7fc/steep-karst-cliffs-of-el-nido-in-palawan.jpg?w=1534&h=768",
+  "Poland": "https://i.natgeofe.com/k/6eb7149d-9876-40ac-9bf7-d261931ddb56/poland-warsaw.jpg?wp=1&w=1084.125&h=609",
+  "Portugal": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Lisboa_-_Portugal_%2852597836992%29.jpg/1200px-Lisboa_-_Portugal_%2852597836992%29.jpg",
+  
+  // Q
+  "Qatar": "https://a.travel-assets.com/findyours-php/viewfinder/images/res70/555000/555257-qatar.jpg",
+  
+  // R
+  "Romania": "https://media.cntravellerme.com/photos/686fba121f3b9dd9d1a32715/4:3/w_4912,h_3684,c_limit/481284732",
+  "Russia": "https://www.advantour.com/russia/images/moscow/saint-basils-cathedral.jpg",
+  "Rwanda": "https://images.goway.com/production/hero/Virunga%20Mountains%2C%20Rwanda_iStock-1254053927.jpg?VersionId=KLa1SG.ToNKym.GawKH_QE2cmLLGw0bV",
+  
+  // S
+  "Saint Kitts and Nevis": "https://www.worldatlas.com/r/w1200-q80/upload/f9/26/e4/shutterstock-631103429.jpg",
+  "Saint Lucia": "https://afar.brightspotcdn.com/dims4/default/899878f/2147483647/strip/true/crop/728x500+36+0/resize/660x453!/quality/90/?url=https%3A%2F%2Fk3-prod-afar-media.s3.us-west-2.amazonaws.com%2Fbrightspot%2Fhttps%3A%2F%2Fafar-production.imgix.net%2Fuploads%2Fimages%2Fpost_images%2Fimages%2FYAN1HZMyXd%2Foriginal_Pitons.IBR-1602307N%C2%A9NorbertPropst.AGE.jpga0%2Fdf%2F027756228a6ac41e88098b892552%2Foriginal-pitons-ibr-1602307n-norbertpropst-age.jpg",
+  "Saint Vincent and the Grenadines": "https://www.worldatlas.com/r/w1200/upload/23/c7/f4/kingstown-capital-saint-vincent.jpg",
+  "Samoa": "https://a.travel-assets.com/findyours-php/viewfinder/images/res70/61000/61991-Samoa.jpg",
+  "San Marino": "https://images.winalist.com/blog/wp-content/uploads/2023/06/26182256/AdobeStock_318615601.jpeg",
+  "Saudi Arabia": "https://hub.wtm.com/wp-content/uploads/2020/11/SAUDI-1-760x475@2x.jpg",
+  "Senegal": "https://lp-cms-production.imgix.net/2023-03/GettyImages-694213668.jpg?auto=format,compress&q=72&w=1095&fit=crop&crop=faces,edges",
+  "Serbia": "https://lp-cms-production.imgix.net/2023-03/shutterstockRF_220992322.jpg?auto=format,compress&q=72&w=1095&fit=crop&crop=faces,edges",
+  "Seychelles": "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/15/33/fb/42/seychelles.jpg?w=1400&h=1400&s=1",
+  "Sierra Leone": "https://content.r9cdn.net/rimg/dimg/bc/e8/c16f12e0-city-5571-169fd60e503.jpg?width=1366&height=768&xhint=2037&yhint=1872&crop=true",
+  "Singapore": "https://www.visitsingapore.com/neighbourhood/featured-neighbourhood/marina-bay/merlion-park/_jcr_content/root/responsivegrid/containercomponent/par/columncntrl/par1/containercomponent/par/image.img.jpeg/1729672232547/merlion-park-1354x916.jpeg",
+  "Slovakia": "https://images.squarespace-cdn.com/content/v1/6321be983796bc30b4aff55b/1b84edc6-05c6-453a-a50b-174de85dae9d/Iconic-Bratislava-Castle-Slovakia.jpg",
+  "Slovenia": "https://cdn1.matadornetwork.com/blogs/1/2011/05/slovenia-1200x697.jpg",
+  "Solomon Islands": "https://ciobulletin.com/story_image_upload/home_image/ciobulletin-solomon-islands-largest-coral-marine-science-technology.webp",
+  "Somalia": "https://www.hornheritage.org/wp-content/uploads/lighthouseHeader-scaled.jpg",
+  "South Africa": "https://cdn.britannica.com/42/126842-050-0803BC41/Sea-Point-Cape-Town-SAf.jpg",
+  "South Korea": "https://a-us.storyblok.com/f/1018766/1365x1030/0addf3bfd1/southkorea_gyeongbokgungpalace_hyangwonjeongpavilion.png",
+  "South Sudan": "https://cdn.britannica.com/90/150790-050-081325A0/view-Bahr-Al-Jabal-South-Sudan-Juba.jpg",
+  "Spain": "https://amigoenergy.com/wp-content/uploads/2024/08/la-sagrada-familia-in-barcelona-antoni-gauds-barcelona-masterpiece.jpg",
+  "Sri Lanka": "https://static01.nyt.com/images/2019/02/03/travel/03frugal-srilanka01/merlin_148552275_74c0d250-949c-46e0-b8a1-e6d499e992cf-superJumbo.jpg",
+  "Sudan": "https://www.wanderlustmagazine.com/wp-content/uploads/2023/10/meroe-pyramids-shutterstock_323675330jpg-web.jpg",
+  "Suriname": "https://davidsbeenhere.com/wp-content/uploads/2019/10/top-15-things-to-see-and-do-in-paramaribo-suriname-south-america-davidsbeenhere80.jpg",
+  "Sweden": "https://image.tallink.com/image/upload/f_auto,fl_lossy,q_auto:best,h_1378,w_2448/travel/destinations/sweden/stockholm/stockholm-1.jpg",
+  "Switzerland": "https://cdn.britannica.com/65/162465-050-9CDA9BC9/Alps-Switzerland.jpg",
+  "Syria": "https://www.thoughtco.com/thmb/2t4pOyOrFJXTI6txiHzlOZHW6gA=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/GettyImages-639630840-f5eaac1e4d964237bc70991061ff73eb.jpg",
+  
+  // T
+  "Taiwan": "https://cdn.sanity.io/images/nxpteyfv/goguides/8073613adf9cb2bfcdc7672e654a38ff2892dd15-1600x1067.jpg",
+  "Tajikistan": "https://ta-img.tatinta.com/resize/1024/webp/tour/file-1703906640915.jpg",
+  "Tanzania": "https://cdn.britannica.com/34/153434-050-863E8023/Mount-Kilimanjaro-Tanzania.jpg",
+  "Thailand": "https://www.travelandleisure.com/thmb/nDDNqO2EctQhiIfZrxeXTF47zhE=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/TAL-koh-phi-phi-PLACESTHAILAND1023-09b9d347b3cd4844b4ae19e4e06a9a6d.jpg",
+  "Togo": "https://statemag.state.gov/wp-content/uploads/sites/1/nggallery/pom-togo/0421POM-4.jpg",
+  "Tonga": "https://a.travel-assets.com/findyours-php/viewfinder/images/res70/213000/213688-Tonga.jpg",
+  "Trinidad and Tobago": "https://www.islandexperiencestt.com/wp-content/uploads/2021/10/Maracas-Beach-Trip-11.jpg",
+  "Tunisia": "https://www.tunisia.sk/wp-content/uploads/2023/04/shu-Tunisia-SidiBouSaid-760300645-1440x823-1.jpg",
+  "Turkey": "https://www.wickersworld.co.uk/wp-content/uploads/2019/09/Balloon-Rides-in-Turkey.jpg",
+  "Turkmenistan": "https://geology.com/oil-and-gas/darvaza-gas-crater/darvaza-gas-crater.jpg",
+  "Tuvalu": "https://iugs-geoheritage.org/wp-content/uploads/2022/07/006-1_Funafuti-Atoll.jpg",
+  
+  // U
+  "Uganda": "https://pictures.altai-travel.com/1920x0/sipi-falls-in-uganda-adobe-stock-4014.jpg",
+  "Ukraine": "https://i.natgeofe.com/k/29ce0d21-6863-4fe5-a0ed-082ad307161c/Kyiv_Ukraine_0322_4x3.jpg",
+  "United Arab Emirates": "https://www.burjkhalifa.ae/wp-content/uploads/2024/08/BURJ-KHALIFE-Hero-image-1-min-1.jpg",
+  "United Kingdom": "https://www.fattiretours.com/app/uploads/2022/03/london-big-ben.jpg",
+  "United States": "https://www.historyhit.com/app/uploads/2020/11/Statue-of-Liberty-e1632495792514.jpg",
+  "Uruguay": "https://images.squarespace-cdn.com/content/v1/52efc94ae4b01409c74273d6/1585834171615-UL7OJYX14WAZC26CASHB/montevideo_grande.jpg?format=1500w",
+  "Uzbekistan": "https://media.cnn.com/api/v1/images/stellar/prod/gettyimages-1185723641v2.jpg?c=original",
+  
+  // V
+  "Vanuatu": "https://cdn.britannica.com/92/96692-050-0419F736/Iririki-Island-harbour-Port-Vila-Vanuatu-Efate.jpg",
+  "Vatican City": "https://excursionmania.com/uploads/regions/region/vatican1.jpg",
+  "Venezuela": "https://cdn.britannica.com/91/5391-050-78522514/Victoria-Falls-bridge-Zambezi-River-Zimbabwe-Zambia.jpg",
+  "Vietnam": "https://mediaim.expedia.com/destination/1/aadc31a75b09b36c7c9395876766ef4e.jpg",
+  
+  // Y
+  "Yemen": "https://static.wixstatic.com/media/7335d9_8bb7b4a005c045548bfedbecc93db575~mv2.jpeg/v1/fill/w_980,h_713,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/7335d9_8bb7b4a005c045548bfedbecc93db575~mv2.jpeg",
+  
+  // Z
+  "Zambia": "https://www.intrepidtravel.com/adventures/wp-content/uploads/2018/10/3.-Intrepid-Travel-zambia_victoria-falls-sunset.jpg",
+  "Zimbabwe": "https://good-nature-blog-uploads.s3.amazonaws.com/uploads/2023/10/AdobeStock_251323196.jpg"
+        };
+
+        const resultsDiv = document.getElementById('results');
+        const summaryDiv = document.getElementById('summary');
+        const filtersDiv = document.getElementById('filters');
+        
+        const countries = Object.keys(COUNTRY_IMAGES);
+        let working = 0;
+        let broken = 0;
+        let tested = 0;
+        const total = countries.length;
+
+        let currentFilter = 'all';
+
+        countries.forEach(country => {
+            const url = COUNTRY_IMAGES[country];
+            const div = document.createElement('div');
+            div.className = 'country-test';
+            div.dataset.country = country;
+            
+            div.innerHTML = `
+                <img id="img-${country.replace(/\s/g, '-')}" src="${url}" alt="${country}">
+                <div class="country-info">
+                    <div class="country-name">${country}</div>
+                    <div class="country-url">${url}</div>
+                </div>
+                <div class="status" id="status-${country.replace(/\s/g, '-')}">Testing...</div>
+            `;
+            resultsDiv.appendChild(div);
+
+            const img = document.getElementById(`img-${country.replace(/\s/g, '-')}`);
+            const status = document.getElementById(`status-${country.replace(/\s/g, '-')}`);
+
+            img.onload = function() {
+                div.classList.add('working');
+                status.textContent = '✓ Working';
+                working++;
+                tested++;
+                updateSummary();
+            };
+
+            img.onerror = function() {
+                div.classList.add('broken');
+                status.textContent = '✗ Broken';
+                broken++;
+                tested++;
+                updateSummary();
+            };
+        });
+
+        function updateSummary() {
+            const workingPercent = Math.round((working/total)*100);
+            const brokenPercent = Math.round((broken/total)*100);
+            
+            summaryDiv.innerHTML = `
+                <div>
+                    <span class="working-count">✅ ${working} Working (${workingPercent}%)</span>
+                    <span class="broken-count">❌ ${broken} Broken (${brokenPercent}%)</span>
+                    <span>📊 ${tested}/${total} Tested</span>
+                </div>
+            `;
+            
+            document.title = `Testing ${tested}/${total} - ${working} ✅ ${broken} ❌`;
+            
+            if (tested === total) {
+                filtersDiv.style.display = 'block';
+                document.title = `Results: ${working} ✅ ${broken} ❌ - Country Images Test`;
+            }
+        }
+
+        function filterResults(filter) {
+            currentFilter = filter;
+            const allDivs = document.querySelectorAll('.country-test');
+            
+            allDivs.forEach(div => {
+                if (filter === 'all') {
+                    div.style.display = 'flex';
+                } else if (filter === 'working' && div.classList.contains('working')) {
+                    div.style.display = 'flex';
+                } else if (filter === 'broken' && div.classList.contains('broken')) {
+                    div.style.display = 'flex';
+                } else {
+                    div.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>
