@@ -181,7 +181,7 @@
 #searchResults {
     backdrop-filter: none !important;
     border: 1px solid rgba(255, 255, 255, 0.1);
-    z-index: 10001 !important; /* Changed from 10000 to 10001 */
+    z-index: 10000 !important;
     position: absolute !important;
 }
         
@@ -1078,10 +1078,6 @@ h1 {
   display: none;
 }
 
-body:has(#welcomeModal:not(.hidden)) #searchContainer {
-  display: none !important;
-}
-
 #welcomeModal:not(.hidden) {
   display: flex !important;
 }
@@ -1517,7 +1513,7 @@ body:has(#welcomeModal:not(.hidden)) #searchContainer {
                 <!-- Search Input -->
                 <p class="text-gray-400 text-sm mb-3 px-4 sm:px-6">Can you find today's hidden country? Each guess brings you closer.</p>
 
-                <div id="searchContainer" class="bg-white rounded-lg shadow-lg p-4 mb-4 mx-4 sm:mx-6" style="position: relative; z-index: 10001;">
+                <div id="searchContainer" class="bg-white rounded-lg shadow-lg p-4 mb-4 mx-4 sm:mx-6" style="position: relative; z-index: 100;">
     
     <div class="flex items-center justify-between mb-2">
     <!-- Mode Toggle Switch -->
